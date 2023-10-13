@@ -14,6 +14,9 @@ library(shinydashboard)
 library(bslib)      # Bootstrap Theme is used, in order to make the page more aesthetically pleasing
 library(leaflet)    # Map
 
+library(leaflet.extras)
+library(httr)
+library(jsonlite)
 
 # ---------------------------- Variable Definition --------------------------- #
 ## Dataset
@@ -30,6 +33,32 @@ dark <- bs_theme(bootswatch = theme, bg = "#212121", fg = "white")
 tab <- function(...) {
   shiny::tabPanel(..., class = "p-3 border border-top-0 rounded-bottom")
 }
+
+
+# ------------------------------ Weather Extractor ------------------------------ #
+# Fetch weather data from the API
+fetch_weather_data <- function(lat, lon, api_key) {
+  # Construct the URL
+  url <- paste0("https://api.openweathermap.org/data/2.5/weather?lat=", 
+                lat, "&lon=", lon, "&appid=", api_key,"&units=metric")
+  
+  # Make the GET request
+  response <- GET(url)
+  
+  # Parse the JSON content from the response
+  content <- content(response, "text")
+  data <- fromJSON(content, flatten = TRUE)
+  
+  return(data)
+}
+
+# Extract relevant information
+get_main_weather_data <- function(lat, lon, api_key) {
+  data <- fetch_weather_data(lat, lon, api_key)
+  main_data <- data$main
+  return(main_data)
+}
+
 
 # ------------------------------ USER INTERFACE ------------------------------ #
 ## Page components
@@ -58,7 +87,7 @@ userGuide <- tab(
     accordion_panel("Introduction",
                     "This project ..."),
     accordion_panel("Data Source",
-                    "Data Source Describe"),
+                    "Data Source Describe")
   )
 )
 
@@ -94,6 +123,17 @@ ui <- page_sidebar(
 
 # ------------------------------- SHINY SERVER ------------------------------- #
 server <- function(input, output, session) { 
+  # Melbourne coordinates
+  lat <- -37.8136
+  lon <- 144.9631
+  # extract weather, temperature, and icon
+  api_key <- "c0a65383e451468df23eb4bbedb94cb2"
+  api_data <- fetch_weather_data(lat, lon, api_key)
+  # extract temprature, weather and weather icon
+  weather_data <- api_data$main
+  weather_description <- api_data$weather$description[1]
+  weather_icon_id <- api_data$weather$icon[1]
+
   ## Dynamic theming
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
@@ -107,19 +147,37 @@ server <- function(input, output, session) {
   ## Map
   output$map <- renderLeaflet({
     # Create Leaflet Map
-    leaflet() %>%
+    m <- leaflet() %>%
       addProviderTiles(providers$CartoDB.Positron) %>% # 可以选择其他的主题，有个黑白的很酷
-    # Mini Map 
-    addMiniMap(
-      tiles = providers$CartoDB.Positron,
-      toggleDisplay = TRUE, position = "bottomleft") %>%
-    # EasyButton: zoom = 1
-    addEasyButton(easyButton(
-      icon="fa-globe", title="Zoom to Level 1",
-      onClick=JS("function(btn, map){ map.setZoom(1); }")))
-    # addMarkers()
+      # Mini Map
+      addMiniMap(
+        tiles = providers$CartoDB.Positron,
+        toggleDisplay = TRUE, position = "bottomleft") %>%
+      # EasyButton: zoom = 1
+      addEasyButton(easyButton(
+        icon="fa-globe", title="Zoom to Level 1",
+        onClick=JS("function(btn, map){ map.setZoom(1); }"))) # addMarkers()
+      
+    # Weather info as HTML
+    weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
+    weather_info <- paste0("<div id='weatherControl'><img src='", weather_icon_url, 
+                           "' alt='Weather icon' class='weather-icon'><br>",
+                           "<strong>Current Temperature:</strong> ", weather_data$temp, " °C<br>",
+                           "<strong>Lowest Temperature:</strong> ", weather_data$temp_min, " °C<br>",
+                           "<strong>Highest Temperature:</strong> ", weather_data$temp_max, " °C</div>")
+    # Add custom control to display weather info, this is toggle-able
+    m <- addControl(m, html=weather_info, position="bottomright")
+    m %>% addEasyButton(easyButton(
+      icon = "fa-sun", title = "Toggle Weather Info",
+      onClick = JS("function(btn, map){
+                     var control = document.getElementById('weatherControl');
+                     if (control.style.display === 'none' || control.style.display === '') {
+                       control.style.display = 'block';
+                     } else {
+                       control.style.display = 'none';
+                     }
+                   }")))
   })
 }
-
 # -------------------------------- RUN SHINY --------------------------------- #
 shinyApp(ui, server)
