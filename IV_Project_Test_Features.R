@@ -13,7 +13,7 @@ library("shiny")
 library(shinydashboard)
 library(bslib)      # Bootstrap Theme is used, in order to make the page more aesthetically pleasing
 library(leaflet)    # Map
-library(dplyr)
+
 library(leaflet.extras)
 library(httr)
 library(jsonlite)
@@ -91,23 +91,6 @@ userGuide <- tab(
   )
 )
 
-# -------------------------------- Bar display --------------------------------- #
-
-# 读取CSV数据集
-bar_data <- read.csv("raw_data/bars-and-pubs-with-patron-capacity.csv")
-
-# 过滤数据集
-bar_filtered_data <- bar_data %>%
-  filter(!is.na("Business address") &          # Business address 不为空
-           !is.na(Longitude) &                   # Longitude 不为空
-           !is.na(Latitude) &                    # Latitude 不为空
-           "Census_year" > 2012 &               # Census year 大于 2022
-           "Census_year" < 2023 &               # Census year 小于 2023
-           grepl("bar", "Trading name", ignore.case = TRUE))  # Trading name 包含 "bar"（不区分大小写）
-
-
-
-
 ## UI
 ui <- page_sidebar(
   theme = bs_theme(bootswatch = "sketchy"),
@@ -120,7 +103,12 @@ ui <- page_sidebar(
     h4("Page Setting"),
     actionButton("light_mode", " Light Model", icon("sun"), style = "color: black; background-color: #E8E8E8;"),
     actionButton("dark_mode", " Dark Model", icon("moon"), style = "color: white; background-color: #212121;"),
+    
+    # New Button
+    br(), # Adding a line break for better spacing
+    actionButton("jump_to_melbourne", "Jump to Melbourne"),
   ),
+
   
   dashboardBody(
     # Left and right layout (Above)
@@ -130,12 +118,8 @@ ui <- page_sidebar(
                             map)),
       # Right Page
       column(4, tabsetPanel(id = "right_tabs",
-                            tab1, tab2)),
-      # -------------------------------- Bar display --------------------------------- #
-      # Checkbox to control bar icon visibility
-      checkboxInput("show_bar_icons", "Show Bar Icons", value = TRUE)  
+                            tab1, tab2))
     ),
-    
     
     # Below
     tabsetPanel(userGuide)
@@ -147,6 +131,7 @@ server <- function(input, output, session) {
   # Melbourne coordinates
   lat <- -37.8136
   lon <- 144.9631
+  
   # extract weather, temperature, and icon
   api_key <- "c0a65383e451468df23eb4bbedb94cb2"
   api_data <- fetch_weather_data(lat, lon, api_key)
@@ -160,49 +145,22 @@ server <- function(input, output, session) {
   observeEvent(input$light_mode, {
     session$setCurrentTheme(light)
   })
+  
   observeEvent(input$dark_mode, {
     session$setCurrentTheme(dark)
   })
   
-  
-  
-  ## Map
+  # Initial map rendering
   output$map <- renderLeaflet({
-    # Create Leaflet Map
     m <- leaflet() %>%
-      addProviderTiles(providers$CartoDB.Positron) %>% # 可以选择其他的主题，有个黑白的很酷
-      # Mini Map
+      addProviderTiles(providers$CartoDB.Positron) %>%
+      setView(lng=lon, lat=lat, zoom=10) %>%
       addMiniMap(
         tiles = providers$CartoDB.Positron,
         toggleDisplay = TRUE, position = "bottomleft") %>%
-      # 将地图聚焦在墨尔本区域
-      setView(lng = 144.9631, lat = -37.8136, zoom = 10)
-    
-    # -------------------------------- Bar display --------------------------------- #
-    if (input$show_bar_icons) {
-      # Add bar icons to the map if the checkbox is checked
-      for (i in 1:nrow(bar_filtered_data)) {
-        bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
-        m <- addMarkers(
-          m,
-          lng = bar_filtered_data[i, "Longitude"],
-          lat = bar_filtered_data[i, "Latitude"],
-          icon = bar_icon,
-          popup = bar_filtered_data[i, "Business_address"]
-        )
-      }
-    }
-    
-    
-    
-    # EasyButton: zoom = 1
-    #addEasyButton(easyButton(
-    #icon="fa-globe", title="Zoom to Level 1",
-    #onClick=JS("function(btn, map){ map.setZoom(1); }"))) 
-    
-    
-    
-    
+      addEasyButton(easyButton(
+        icon="fa-globe", title="Zoom to Level 1",
+        onClick=JS("function(btn, map){ map.setZoom(1); }")))
     
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
@@ -211,6 +169,7 @@ server <- function(input, output, session) {
                            "<strong>Current Temperature:</strong> ", weather_data$temp, " °C<br>",
                            "<strong>Lowest Temperature:</strong> ", weather_data$temp_min, " °C<br>",
                            "<strong>Highest Temperature:</strong> ", weather_data$temp_max, " °C</div>")
+    
     # Add custom control to display weather info, this is toggle-able
     m <- addControl(m, html=weather_info, position="bottomright")
     m %>% addEasyButton(easyButton(
@@ -223,6 +182,12 @@ server <- function(input, output, session) {
                        control.style.display = 'none';
                      }
                    }")))
+  })
+  
+  # When the "Jump to Melbourne" button is clicked, update the map view
+  observeEvent(input$jump_to_melbourne, {
+    leafletProxy("map") %>%
+      setView(lng=lon, lat=lat, zoom=10)  # Update view to Melbourne
   })
 }
 # -------------------------------- RUN SHINY --------------------------------- #
