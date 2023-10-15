@@ -188,7 +188,7 @@ server <- function(input, output, session) {
           lng = bar_filtered_data[i, "Longitude"],
           lat = bar_filtered_data[i, "Latitude"],
           icon = bar_icon,
-          popup = bar_filtered_data[i, "Business address"]
+          popup = bar_filtered_data[i, "Business_address"]
         )
       }
     }
