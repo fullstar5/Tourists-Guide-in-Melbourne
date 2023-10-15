@@ -13,7 +13,7 @@ library("shiny")
 library(shinydashboard)
 library(bslib)      # Bootstrap Theme is used, in order to make the page more aesthetically pleasing
 library(leaflet)    # Map
-
+library(dplyr)
 library(leaflet.extras)
 library(httr)
 library(jsonlite)
@@ -91,6 +91,23 @@ userGuide <- tab(
   )
 )
 
+# -------------------------------- Bar display --------------------------------- #
+
+# 读取CSV数据集
+bar_data <- read.csv("bars-and-pubs-with-patron-capacity.csv")
+
+# 过滤数据集
+bar_filtered_data <- bar_data %>%
+  filter(!is.na(Business_address) &          # Business address 不为空
+           !is.na(Longitude) &                   # Longitude 不为空
+           !is.na(Latitude) &                    # Latitude 不为空
+           Census_year > 2012 &               # Census year 大于 2022
+           Census_year < 2023 &               # Census year 小于 2023
+           grepl("bar", Trading_name, ignore.case = TRUE))  # Trading name 包含 "bar"（不区分大小写）
+
+
+
+
 ## UI
 ui <- page_sidebar(
   theme = bs_theme(bootswatch = "sketchy"),
@@ -113,8 +130,12 @@ ui <- page_sidebar(
                             map)),
       # Right Page
       column(4, tabsetPanel(id = "right_tabs",
-                            tab1, tab2))
+                            tab1, tab2)),
+      # -------------------------------- Bar display --------------------------------- #
+      # Checkbox to control bar icon visibility
+      checkboxInput("show_bar_icons", "Show Bar Icons", value = TRUE)  
     ),
+    
     
     # Below
     tabsetPanel(userGuide)
@@ -133,7 +154,7 @@ server <- function(input, output, session) {
   weather_data <- api_data$main
   weather_description <- api_data$weather$description[1]
   weather_icon_id <- api_data$weather$icon[1]
-
+  
   ## Dynamic theming
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
@@ -142,7 +163,8 @@ server <- function(input, output, session) {
   observeEvent(input$dark_mode, {
     session$setCurrentTheme(dark)
   })
-
+  
+  
   
   ## Map
   output$map <- renderLeaflet({
@@ -153,11 +175,35 @@ server <- function(input, output, session) {
       addMiniMap(
         tiles = providers$CartoDB.Positron,
         toggleDisplay = TRUE, position = "bottomleft") %>%
-      # EasyButton: zoom = 1
-      addEasyButton(easyButton(
-        icon="fa-globe", title="Zoom to Level 1",
-        onClick=JS("function(btn, map){ map.setZoom(1); }"))) # addMarkers()
-      
+      # 将地图聚焦在墨尔本区域
+      setView(lng = 144.9631, lat = -37.8136, zoom = 10)
+    
+    # -------------------------------- Bar display --------------------------------- #
+    if (input$show_bar_icons) {
+      # Add bar icons to the map if the checkbox is checked
+      for (i in 1:nrow(bar_filtered_data)) {
+        bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
+        m <- addMarkers(
+          m,
+          lng = bar_filtered_data[i, "Longitude"],
+          lat = bar_filtered_data[i, "Latitude"],
+          icon = bar_icon,
+          popup = bar_filtered_data[i, "Business address"]
+        )
+      }
+    }
+    
+    
+    
+    # EasyButton: zoom = 1
+    #addEasyButton(easyButton(
+    #icon="fa-globe", title="Zoom to Level 1",
+    #onClick=JS("function(btn, map){ map.setZoom(1); }"))) 
+    
+    
+    
+    
+    
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
     weather_info <- paste0("<div id='weatherControl'><img src='", weather_icon_url, 
