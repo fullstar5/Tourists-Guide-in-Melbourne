@@ -19,7 +19,6 @@ library(httr)
 library(jsonlite)
 
 # ---------------------------- Variable Definition --------------------------- #
-## Dataset
 
 ## Page layout Settings
 # Theme
@@ -58,6 +57,12 @@ get_main_weather_data <- function(lat, lon, api_key) {
   main_data <- data$main
   return(main_data)
 }
+
+
+# ------------------------------ Land Marks ------------------------------ #
+landmarks_data <- read.csv("new_data/melbourne_city_landmarks(new).csv")
+
+
 
 
 # ------------------------------ USER INTERFACE ------------------------------ #
@@ -123,6 +128,8 @@ ui <- page_sidebar(
     # New Button
     br(), # Adding a line break for better spacing
     actionButton("jump_to_melbourne", "Jump to Melbourne"),
+    actionButton("show_landmarks", "Show Landmarks"),
+    actionButton("show_bars", "Show Bars"),
   ),
   
   dashboardBody(
@@ -134,9 +141,7 @@ ui <- page_sidebar(
       # Right Page
       column(4, tabsetPanel(id = "right_tabs",
                             tab1, tab2)),
-      # -------------------------------- Bar display --------------------------------- #
-      # Checkbox to control bar icon visibility
-      checkboxInput("show_bar_icons", "Show Bar Icons", value = TRUE)  
+
     ),
     
     
@@ -158,7 +163,59 @@ server <- function(input, output, session) {
   weather_description <- api_data$weather$description[1]
   weather_icon_id <- api_data$weather$icon[1]
   
-  ## Dynamic theming
+  first_50_landmarks <- head(landmarks_data, 50)
+  first_50_bars <- head(bar_filtered_data, 50)
+  
+  # display landmarks
+  landmarks_visible <- reactiveVal(FALSE)
+  observeEvent(input$show_landmarks, {
+    landmarks_visible(!landmarks_visible())  # Toggle the value
+    if (landmarks_visible()) {
+      landmark_icon <- makeIcon(iconUrl = "destination.png", iconWidth = 30, iconHeight = 30)
+      proxy <- leafletProxy("map")
+      proxy %>% clearMarkers()  # Clear old markers
+      for (i in 1:nrow(first_50_landmarks)) {
+        proxy <- addMarkers(
+          proxy,
+          lng = first_50_landmarks[i, "longitude"],
+          lat = first_50_landmarks[i, "latitude"],
+          icon = landmark_icon,
+          popup = first_50_landmarks[i, "Title"],
+          layerId = paste0("landmark_", i)
+        )
+      }
+    } else {
+      proxy <- leafletProxy("map")
+      for (i in 1:nrow(first_50_landmarks)) {
+        proxy <- removeMarker(proxy, layerId = paste0("landmark_", i))
+      }
+    }
+  })
+  
+  # Display bars
+  bars_visible <- reactiveVal(TRUE)  # Assuming bars are visible by default
+  observeEvent(input$show_bars, {
+    bars_visible(!bars_visible())  # Toggle the value
+    proxy <- leafletProxy("map")
+    if (bars_visible()) {
+      bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
+      for (i in 1:nrow(first_50_bars)) {
+        proxy <- addMarkers(
+          proxy,
+          lng = first_50_bars[i, "Longitude"],
+          lat = first_50_bars[i, "Latitude"],
+          icon = bar_icon,
+          popup = first_50_bars[i, "Business_address"],
+          layerId = paste0("bar_", i)
+        )
+      }
+    } else {
+      for (i in 1:nrow(first_50_bars)) {
+        proxy <- removeMarker(proxy, layerId = paste0("bar_", i))
+      }
+    }
+  })
+  
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
     session$setCurrentTheme(light)
@@ -179,25 +236,20 @@ server <- function(input, output, session) {
       # 将地图聚焦在墨尔本区域
       setView(lng = 144.9631, lat = -37.8136, zoom = 10)
     
-    # -------------------------------- Bar display --------------------------------- #
-    if (input$show_bar_icons) {
-      # Add bar icons to the map if the checkbox is checked
-      for (i in 1:nrow(bar_filtered_data)) {
-        bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
-        m <- addMarkers(
-          m,
-          lng = bar_filtered_data[i, "Longitude"],
-          lat = bar_filtered_data[i, "Latitude"],
-          icon = bar_icon,
-          popup = bar_filtered_data[i, "Business_address"]
-        )
-      }
-    }
-    
-    # EasyButton: zoom = 1
-    #addEasyButton(easyButton(
-    #icon="fa-globe", title="Zoom to Level 1",
-    #onClick=JS("function(btn, map){ map.setZoom(1); }"))) 
+    # if (input$show_bar_icons) {
+    #   # Add bar icons to the map if the checkbox is checked
+    #   for (i in 1:nrow(bar_filtered_data)) {
+    #     bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
+    #     m <- addMarkers(
+    #       m,
+    #       lng = bar_filtered_data[i, "Longitude"],
+    #       lat = bar_filtered_data[i, "Latitude"],
+    #       icon = bar_icon,
+    #       popup = bar_filtered_data[i, "Business_address"],
+    #       layerId = paste0("bar_", i)
+    #     )
+    #   }
+    # }
     
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
