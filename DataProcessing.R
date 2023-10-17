@@ -1,21 +1,24 @@
 library(ggmap)
 
-# 获取Google Maps Geocoding API密钥
+# Google Maps Geocoding API Key
 api_key <- "AIzaSyBP7dJFg5pLlkiVlBfaYnHHr4UBHsErw-M"
-# 使用register_google()函数注册API密钥
 register_google(key = api_key)
 
 # Read dataset
-landmarks <- read.csv('raw_data/melbourne_city_landmarks.csv')
+landmarks <- read.csv('raw_data/melbourne_and_metropolitan_hotels_pubs_and_publicans.csv')
 # landmarks <- landmarks[!is.na(landmarks$Location) & landmarks$Location != "", ]
+landmarks$Title <- sapply(strsplit(landmarks$Title, ","), function(x) x[1])
+landmarks$Title
 
-# Title 包含名称，部分包含地址，Location中有空的情况
-landmarks_address <- paste(landmarks$Title, landmarks$Location, sep = ", ")
+# feature about location
+landmarks_address <- paste(landmarks$Title, landmarks$Location, landmarks$Suburb.State, sep = ", ")
 geocoded <- geocode(landmarks_address, output = "latlon")
 
-# 将生成的经纬度坐标添加回原始数据集
+# add lat and lon to dataset
 landmarks$latitude <- geocoded$lat
 landmarks$longitude <- geocoded$lon
 landmarks <- landmarks[!is.na(landmarks$longitude) & !is.na(landmarks$latitude), ]
 
-write.csv(landmarks, file = 'new_data/melbourne_city_landmarks(new).csv', row.names = FALSE)
+# csv file
+write.csv(landmarks, file = 'new_data/melbourne_and_metropolitan_hotels_pubs_and_publicans(new).csv', row.names = FALSE)
+
