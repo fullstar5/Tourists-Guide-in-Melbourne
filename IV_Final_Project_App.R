@@ -63,8 +63,6 @@ get_main_weather_data <- function(lat, lon, api_key) {
 landmarks_data <- read.csv("new_data/melbourne_city_landmarks(new).csv")
 
 
-
-
 # ------------------------------ USER INTERFACE ------------------------------ #
 ## Page components
 # Left Page
@@ -99,7 +97,7 @@ userGuide <- tab(
 # -------------------------------- Bar display --------------------------------- #
 
 # 读取CSV数据集
-bar_data <- read.csv("bars-and-pubs-with-patron-capacity.csv")
+bar_data <- read.csv("new_data/bars-and-pubs-with-patron-capacity.csv")
 
 # 过滤数据集
 bar_filtered_data <- bar_data %>%
@@ -171,7 +169,7 @@ server <- function(input, output, session) {
   observeEvent(input$show_landmarks, {
     landmarks_visible(!landmarks_visible())  # Toggle the value
     if (landmarks_visible()) {
-      landmark_icon <- makeIcon(iconUrl = "destination.png", iconWidth = 30, iconHeight = 30)
+      landmark_icon <- makeIcon(iconUrl = "icons/landmark_icon.png", iconWidth = 30, iconHeight = 30)
       proxy <- leafletProxy("map")
       proxy %>% clearMarkers()  # Clear old markers
       for (i in 1:nrow(first_50_landmarks)) {
@@ -193,12 +191,12 @@ server <- function(input, output, session) {
   })
   
   # Display bars
-  bars_visible <- reactiveVal(TRUE)  # Assuming bars are visible by default
+  bars_visible <- reactiveVal(FALSE)  # Assuming bars are visible by default
   observeEvent(input$show_bars, {
     bars_visible(!bars_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (bars_visible()) {
-      bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
+      bar_icon <- makeIcon(iconUrl = "icons/bar_icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_bars)) {
         proxy <- addMarkers(
           proxy,
