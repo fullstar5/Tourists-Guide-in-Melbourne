@@ -108,6 +108,12 @@ bar_filtered_data <- bar_data %>%
            Census_year < 2023 &               # Census year 小于 2023
            grepl("bar", Trading_name, ignore.case = TRUE))  # Trading name 包含 "bar"（不区分大小写）
 
+# ---------------------- Hotel & Dwelling & Coworking data ------------------------------------------#
+
+hotel_data <- read.csv("melbourne_and_metropolitan_hotels_pubs_and_publicans(new).csv")
+dwelling_data <- read.csv("residential-dwellings.csv")
+coworking_data <- read.csv("coworking-spaces.csv")
+
 # -------------------------------- UI --------------------------------- #
 
 ## UI
@@ -128,6 +134,9 @@ ui <- page_sidebar(
     actionButton("jump_to_melbourne", "Jump to Melbourne"),
     actionButton("show_landmarks", "Show Landmarks"),
     actionButton("show_bars", "Show Bars"),
+    actionButton("show_hotels", "Show hotels"),
+    actionButton("show_dwellings", "Show dwellings"),
+    actionButton("show_coworkings", "Show coworkings")
   ),
   
   dashboardBody(
@@ -139,7 +148,7 @@ ui <- page_sidebar(
       # Right Page
       column(4, tabsetPanel(id = "right_tabs",
                             tab1, tab2)),
-
+      
     ),
     
     
@@ -163,6 +172,9 @@ server <- function(input, output, session) {
   
   first_50_landmarks <- head(landmarks_data, 50)
   first_50_bars <- head(bar_filtered_data, 50)
+  first_50_hotels <- head(hotel_data, 50)
+  first_50_dwellings <- head(dwelling_data, 50)
+  first_50_coworkings <- head(coworking_data, 50)
   
   # display landmarks
   landmarks_visible <- reactiveVal(FALSE)
@@ -213,6 +225,82 @@ server <- function(input, output, session) {
       }
     }
   })
+  
+  
+  
+  # Display hotels
+  hotels_visible <- reactiveVal(FALSE)
+  observeEvent(input$show_hotels, {
+    hotels_visible(!hotels_visible())  # Toggle the value
+    proxy <- leafletProxy("map")
+    if (hotels_visible()) {
+      hotel_icon <- makeIcon(iconUrl = "hotel_icon.png", iconWidth = 30, iconHeight = 30)
+      for (i in 1:nrow(first_50_hotels)) {
+        proxy <- addMarkers(
+          proxy,
+          lng = first_50_hotels[i, "longitude"],
+          lat = first_50_hotels[i, "latitude"],
+          icon = hotel_icon,
+          popup = first_50_hotels[i, "Location"],
+          layerId = paste0("hotel_", i)
+        )
+      }
+    } else {
+      for (i in 1:nrow(first_50_hotels)) {
+        proxy <- removeMarker(proxy, layerId = paste0("hotel_", i))
+      }
+    }
+  })
+
+
+  # Display dwellings
+  dwellings_visible <- reactiveVal(FALSE)
+  observeEvent(input$show_dwellings, {
+    dwellings_visible(!dwellings_visible())  # Toggle the value
+    proxy <- leafletProxy("map")
+    if (dwellings_visible()) {
+      dwelling_icon <- makeIcon(iconUrl = "dwelling-icon.png", iconWidth = 30, iconHeight = 30)
+      for (i in 1:nrow(first_50_dwellings)) {
+        proxy <- addMarkers(
+          proxy,
+          lng = first_50_dwellings[i, "Longitude"],
+          lat = first_50_dwellings[i, "Latitude"],
+          icon = dwelling_icon,
+          popup = first_50_dwellings[i, "Building_address"],
+          layerId = paste0("dwelling_", i)
+        )
+      }
+    } else {
+      for (i in 1:nrow(first_50_dwellings)) {
+        proxy <- removeMarker(proxy, layerId = paste0("dwelling_", i))
+      }
+    }
+  })
+
+  # Display coworking spaces
+  coworking_visible <- reactiveVal(FALSE)
+  observeEvent(input$show_coworkings, {
+    coworking_visible(!coworking_visible())  # Toggle the value
+    proxy <- leafletProxy("map")
+    if (coworking_visible()) {
+      coworking_icon <- makeIcon(iconUrl = "coworking-icon.png", iconWidth = 30, iconHeight = 30)
+      for (i in 1:nrow(first_50_coworkings)) {
+        proxy <- addMarkers(
+          proxy,
+          lng = first_50_coworkings[i, "longitude"],
+          lat = first_50_coworkings[i, "latitude"],
+          icon = coworking_icon,
+          popup = first_50_coworkings[i, "Address"],
+          layerId = paste0("coworking_", i)
+        )
+      }
+    } else {
+      for (i in 1:nrow(first_50_coworkings)) {
+        proxy <- removeMarker(proxy, layerId = paste0("coworking_", i))
+      }
+    }
+  })
+  
   
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
