@@ -158,7 +158,7 @@ ui <- page_sidebar(
 )
 
 # ------------------------------- SHINY SERVER ------------------------------- #
-server <- function(input, output, session) { 
+server <- function(input, output, session) {
   # Melbourne coordinates
   lat <- -37.8136
   lon <- 144.9631

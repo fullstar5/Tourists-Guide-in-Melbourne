@@ -1,7 +1,7 @@
 # ------------------------------- Introduction ------------------------------- #
 # Group ID:
 # Group Member: (Name - Student ID - Email?)
-#   Student 1:
+#   Student 1: Ruotong Zhao - 1076714
 #   Student 2:
 #   Student 3:
 #   Student 4:
@@ -12,14 +12,13 @@
 library("shiny")
 library(shinydashboard)
 library(bslib)
-library(leaflet)    # Map
+library(leaflet) # Map
 library(dplyr)
 library(leaflet.extras)
 library(httr)
 library(jsonlite)
 
 # ---------------------------- Variable Definition --------------------------- #
-## Load Dataset
 ## Bar display
 # 读取CSV数据集
 bar_data <- read.csv("new_data/bars-and-pubs-with-patron-capacity.csv")
@@ -34,6 +33,11 @@ bar_filtered_data <- bar_data %>%
 
 ## Land Marks
 landmarks_data <- read.csv("new_data/melbourne_city_landmarks(new).csv")
+
+## Hotel & Dwelling & Coworking data
+hotel_data <- read.csv("dataset/melbourne_and_metropolitan_hotels_pubs_and_publicans(new).csv")
+dwelling_data <- read.csv("dataset/residential-dwellings.csv")
+coworking_data <- read.csv("dataset/coworking-spaces.csv")
 
 # ------------------------------ Weather Extractor --------------------------- #
 # Fetch weather data from the API
@@ -128,7 +132,13 @@ ui <- navbarPage(
                                  actionButton("show_landmarks", "Show Landmarks",
                                                style = "margin-top: 10px; background-color: #0163FA; color: white;"), br(),
                                  actionButton("show_bars", "Show Bars",
-                                               style = "margin-top: 10px; background-color: #9711FA; color: white;"), br(),),
+                                               style = "margin-top: 10px; background-color: #9711FA; color: white;"), br(),
+                                 actionButton("show_hotels", "Show hotels",
+                                               style = "margin-top: 10px; background-color: #9711FA; color: white;"), br(),
+                                 actionButton("show_dwellings", "Show dwellings",
+                                               style = "margin-top: 10px; background-color: #9711FA; color: white;"), br(),
+                                 actionButton("show_coworkings", "Show coworkings",
+                                              style = "margin-top: 10px; background-color: #9711FA; color: white;"),  br(),),
                         tabPanel("2", "22"),
                       ),
                     )
@@ -140,7 +150,7 @@ ui <- navbarPage(
 
 
 # ------------------------------- SHINY SERVER ------------------------------- #
-server <- function(input, output, session) { 
+server <- function(input, output, session) {
   # Melbourne coordinates
   lat <- -37.8136
   lon <- 144.9631
@@ -154,6 +164,9 @@ server <- function(input, output, session) {
   
   first_50_landmarks <- head(landmarks_data, 50)
   first_50_bars <- head(bar_filtered_data, 50)
+  first_50_hotels <- head(hotel_data, 50)
+  first_50_dwellings <- head(dwelling_data, 50)
+  first_50_coworkings <- head(coworking_data, 50)
   
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
@@ -162,7 +175,6 @@ server <- function(input, output, session) {
   observeEvent(input$dark_mode, {
     session$setCurrentTheme(dark)
   })
-  
   
   # display landmarks
   landmarks_visible <- reactiveVal(FALSE)
@@ -210,6 +222,80 @@ server <- function(input, output, session) {
     } else {
       for (i in 1:nrow(first_50_bars)) {
         proxy <- removeMarker(proxy, layerId = paste0("bar_", i))
+      }
+    }
+  })
+  
+  
+  # Display hotels
+  hotels_visible <- reactiveVal(FALSE)
+  observeEvent(input$show_hotels, {
+    hotels_visible(!hotels_visible())  # Toggle the value
+    proxy <- leafletProxy("map")
+    if (hotels_visible()) {
+      hotel_icon <- makeIcon(iconUrl = "hotel_icon.png", iconWidth = 30, iconHeight = 30)
+      for (i in 1:nrow(first_50_hotels)) {
+        proxy <- addMarkers(
+          proxy,
+          lng = first_50_hotels[i, "longitude"],
+          lat = first_50_hotels[i, "latitude"],
+          icon = hotel_icon,
+          popup = first_50_hotels[i, "Location"],
+          layerId = paste0("hotel_", i)
+        )
+      }
+    } else {
+      for (i in 1:nrow(first_50_hotels)) {
+        proxy <- removeMarker(proxy, layerId = paste0("hotel_", i))
+      }
+    }
+  })
+  
+  
+  # Display dwellings
+  dwellings_visible <- reactiveVal(FALSE)
+  observeEvent(input$show_dwellings, {
+    dwellings_visible(!dwellings_visible())  # Toggle the value
+    proxy <- leafletProxy("map")
+    if (dwellings_visible()) {
+      dwelling_icon <- makeIcon(iconUrl = "dwelling-icon.png", iconWidth = 30, iconHeight = 30)
+      for (i in 1:nrow(first_50_dwellings)) {
+        proxy <- addMarkers(
+          proxy,
+          lng = first_50_dwellings[i, "Longitude"],
+          lat = first_50_dwellings[i, "Latitude"],
+          icon = dwelling_icon,
+          popup = first_50_dwellings[i, "Building_address"],
+          layerId = paste0("dwelling_", i)
+        )
+      }
+    } else {
+      for (i in 1:nrow(first_50_dwellings)) {
+        proxy <- removeMarker(proxy, layerId = paste0("dwelling_", i))
+      }
+    }
+  })
+  
+  # Display coworking spaces
+  coworking_visible <- reactiveVal(FALSE)
+  observeEvent(input$show_coworkings, {
+    coworking_visible(!coworking_visible())  # Toggle the value
+    proxy <- leafletProxy("map")
+    if (coworking_visible()) {
+      coworking_icon <- makeIcon(iconUrl = "coworking-icon.png", iconWidth = 30, iconHeight = 30)
+      for (i in 1:nrow(first_50_coworkings)) {
+        proxy <- addMarkers(
+          proxy,
+          lng = first_50_coworkings[i, "longitude"],
+          lat = first_50_coworkings[i, "latitude"],
+          icon = coworking_icon,
+          popup = first_50_coworkings[i, "Address"],
+          layerId = paste0("coworking_", i)
+        )
+      }
+    } else {
+      for (i in 1:nrow(first_50_coworkings)) {
+        proxy <- removeMarker(proxy, layerId = paste0("coworking_", i))
       }
     }
   })
