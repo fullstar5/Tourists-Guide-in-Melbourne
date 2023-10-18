@@ -110,9 +110,9 @@ bar_filtered_data <- bar_data %>%
 
 # ---------------------- Hotel & Dwelling & Coworking data ------------------------------------------#
 
-hotel_data <- read.csv("melbourne_and_metropolitan_hotels_pubs_and_publicans(new).csv")
-dwelling_data <- read.csv("residential-dwellings.csv")
-coworking_data <- read.csv("coworking-spaces.csv")
+hotel_data <- read.csv("new_data/melbourne_and_metropolitan_hotels_pubs_and_publicans(new).csv")
+dwelling_data <- read.csv("new_data/residential-dwellings.csv")
+coworking_data <- read.csv("new_data/coworking-spaces.csv")
 
 # -------------------------------- UI --------------------------------- #
 
@@ -234,7 +234,7 @@ server <- function(input, output, session) {
     hotels_visible(!hotels_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
-      hotel_icon <- makeIcon(iconUrl = "hotel_icon.png", iconWidth = 30, iconHeight = 30)
+      hotel_icon <- makeIcon(iconUrl = "icons/hotel_icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_hotels)) {
         proxy <- addMarkers(
           proxy,
@@ -259,7 +259,7 @@ server <- function(input, output, session) {
     dwellings_visible(!dwellings_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (dwellings_visible()) {
-      dwelling_icon <- makeIcon(iconUrl = "dwelling-icon.png", iconWidth = 30, iconHeight = 30)
+      dwelling_icon <- makeIcon(iconUrl = "icons/dwelling-icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_dwellings)) {
         proxy <- addMarkers(
           proxy,
@@ -283,7 +283,7 @@ server <- function(input, output, session) {
     coworking_visible(!coworking_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (coworking_visible()) {
-      coworking_icon <- makeIcon(iconUrl = "coworking-icon.png", iconWidth = 30, iconHeight = 30)
+      coworking_icon <- makeIcon(iconUrl = "icons/coworking-icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_coworkings)) {
         proxy <- addMarkers(
           proxy,
@@ -321,21 +321,6 @@ server <- function(input, output, session) {
         toggleDisplay = TRUE, position = "bottomleft") %>%
       # 将地图聚焦在墨尔本区域
       setView(lng = 144.9631, lat = -37.8136, zoom = 10)
-    
-    # if (input$show_bar_icons) {
-    #   # Add bar icons to the map if the checkbox is checked
-    #   for (i in 1:nrow(bar_filtered_data)) {
-    #     bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
-    #     m <- addMarkers(
-    #       m,
-    #       lng = bar_filtered_data[i, "Longitude"],
-    #       lat = bar_filtered_data[i, "Latitude"],
-    #       icon = bar_icon,
-    #       popup = bar_filtered_data[i, "Business_address"],
-    #       layerId = paste0("bar_", i)
-    #     )
-    #   }
-    # }
     
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")

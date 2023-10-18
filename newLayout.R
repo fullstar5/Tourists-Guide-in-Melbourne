@@ -35,9 +35,9 @@ bar_filtered_data <- bar_data %>%
 landmarks_data <- read.csv("new_data/melbourne_city_landmarks(new).csv")
 
 ## Hotel & Dwelling & Coworking data
-hotel_data <- read.csv("dataset/melbourne_and_metropolitan_hotels_pubs_and_publicans(new).csv")
-dwelling_data <- read.csv("dataset/residential-dwellings.csv")
-coworking_data <- read.csv("dataset/coworking-spaces.csv")
+hotel_data <- read.csv("new_data/melbourne_and_metropolitan_hotels_pubs_and_publicans(new).csv")
+dwelling_data <- read.csv("new_data/residential-dwellings.csv")
+coworking_data <- read.csv("new_data/coworking-spaces.csv")
 
 # ------------------------------ Weather Extractor --------------------------- #
 # Fetch weather data from the API
@@ -233,7 +233,7 @@ server <- function(input, output, session) {
     hotels_visible(!hotels_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
-      hotel_icon <- makeIcon(iconUrl = "hotel_icon.png", iconWidth = 30, iconHeight = 30)
+      hotel_icon <- makeIcon(iconUrl = "icons/hotel_icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_hotels)) {
         proxy <- addMarkers(
           proxy,
@@ -258,7 +258,7 @@ server <- function(input, output, session) {
     dwellings_visible(!dwellings_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (dwellings_visible()) {
-      dwelling_icon <- makeIcon(iconUrl = "dwelling-icon.png", iconWidth = 30, iconHeight = 30)
+      dwelling_icon <- makeIcon(iconUrl = "icons/dwelling-icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_dwellings)) {
         proxy <- addMarkers(
           proxy,
@@ -282,7 +282,7 @@ server <- function(input, output, session) {
     coworking_visible(!coworking_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (coworking_visible()) {
-      coworking_icon <- makeIcon(iconUrl = "coworking-icon.png", iconWidth = 30, iconHeight = 30)
+      coworking_icon <- makeIcon(iconUrl = "icons/coworking-icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_coworkings)) {
         proxy <- addMarkers(
           proxy,
