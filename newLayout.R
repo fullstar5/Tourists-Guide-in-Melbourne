@@ -99,6 +99,16 @@ ui <- navbarPage(
                   position: absolute;
                   top: 90px;
                   right: 30px;
+                  }
+                
+                
+                #draggable2 {
+                  width: 45vh;
+                  height: auto;  # 改为自动，以适应内容
+                  cursor: move;
+                  position: absolute;
+                  top: 90px;
+                  right: 30px;
                 }
 
                 #draggable h3 {
@@ -110,10 +120,17 @@ ui <- navbarPage(
     tags$script('$(document).ready(function() {
                    $( "#draggable" ).draggable();
                  });'),
+    tags$script('$(document).ready(function() {
+                   $( "#draggable2" ).draggable();
+                 });'),
     tags$script(HTML("$(document).ready(function(){
                         $('#toggle-icon').click(function(){
                           $('#content-area').toggle();});
-                      });"))
+                      });")),
+    tags$script(HTML("$(document).ready(function(){
+                        $('#toggle-icon2').click(function(){
+                          $('#content-area2').toggle();});
+                      });")),
   ),
   
   # Page 1
@@ -141,6 +158,17 @@ ui <- navbarPage(
                                               style = "margin-top: 10px; background-color: #9711FA; color: white;"),  br(),),
                         tabPanel("2", "22"),
                       ),
+                    )
+           ),
+           tags$div(id = "draggable2",
+                    style = "background-color: rgba(255, 255, 255, 0.6);",
+                    tags$h3("Title", 
+                            tags$i(id="toggle-icon2", class="fas fa-chevron-down", style="float: right;")
+                    ),
+                    tags$div(id="content-area2",
+                             tabsetPanel(
+                               tabPanel("2", "22"),
+                             ),
                     )
            ),
   ),
