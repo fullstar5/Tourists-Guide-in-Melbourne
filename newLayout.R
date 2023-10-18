@@ -184,6 +184,8 @@ server <- function(input, output, session) {
   bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'black')
   dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'purple', iconColor = 'black')
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = 'orange', iconColor = 'black')
+  hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'red', iconColor = 'black')
+  landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'black')
   
   # Melbourne coordinates
   lat <- -37.8136
@@ -215,7 +217,6 @@ server <- function(input, output, session) {
   observeEvent(input$show_landmarks, {
     landmarks_visible(!landmarks_visible())  # Toggle the value
     if (landmarks_visible()) {
-      landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'black')
       proxy <- leafletProxy("map")
       proxy %>% clearMarkers()  # Clear old markers
       for (i in 1:nrow(first_50_landmarks)) {
@@ -265,7 +266,6 @@ server <- function(input, output, session) {
     hotels_visible(!hotels_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
-      hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'red', iconColor = 'black')
       for (i in 1:nrow(first_50_hotels)) {
         proxy <- addAwesomeMarkers(
           proxy,
