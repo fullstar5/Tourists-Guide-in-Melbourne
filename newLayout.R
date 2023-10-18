@@ -39,6 +39,13 @@ hotel_data <- read.csv("new_data/melbourne_and_metropolitan_hotels_pubs_and_publ
 dwelling_data <- read.csv("new_data/residential-dwellings.csv")
 coworking_data <- read.csv("new_data/coworking-spaces.csv")
 
+## Page layout Settings
+# Bootstrap Theme and dark mode (https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic)
+# Other theme: lumen,  Demo: https://testing-apps.shinyapps.io/themer-demo/
+theme <- "lumen"
+light <- bs_theme(bootswatch = theme)
+dark <- bs_theme(bootswatch = theme, bg = "#212121", fg = "white")
+
 # ------------------------------ Weather Extractor --------------------------- #
 # Fetch weather data from the API
 fetch_weather_data <- function(lat, lon, api_key) {
@@ -85,37 +92,60 @@ userGuide <- tabPanel(
 ## UI
 ui <- navbarPage(
   "Tourist Melbourne",
-  theme = bs_theme(bootswatch = "sketchy"),
+  theme = light,
   
   # Set Style
   tags$head(
     tags$script(src = "https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     tags$link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"),  # 添加Font Awesome
-
+    
     tags$style("#draggable {
                   width: 45vh;
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 90px;
-                  right: 30px;
+                  top: 12vh;
+                  right: 3vh;
+                  background-color: rgba(255, 255, 255, 0.8);
+                  color: black;
                   }
-                
                 
                 #draggable2 {
                   width: 45vh;
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 90px;
-                  right: 30px;
+                  top: 45vh;
+                  right: 3vh;
+                  background-color: rgba(255, 255, 255, 0.8);
+                  color: black;
                 }
 
-                #draggable h3 {
-                  background-color: #B6E13D;  # 标题的背景颜色
-                  height: 8vh;
-                  padding: 10px;  # 添加内边距
-                }"),
+                #draggable h4 {
+                  color: white;
+                  background-color: black;
+                  height: 4vh;
+                  padding: 0.5vh;
+                }
+                
+               #draggable2 h4 {
+                  color: white;  
+                  background-color: black;
+                  height: 4vh;
+                  padding: 0.5vh;
+               }
+                
+               .custom-slider-container {
+                  color: black;
+                  display: flex;
+                  margin-left: 15px;
+                  align-items: center;
+                }
+              .custom-slider-labels {
+                  color: black;
+                  margin: 0 10px;
+               }"
+    ),
     
     tags$script('$(document).ready(function() {
                    $( "#draggable" ).draggable();
@@ -137,38 +167,47 @@ ui <- navbarPage(
   tabPanel("Map",
            map,
            tags$div(id = "draggable",
-                    style = "background-color: rgba(255, 255, 255, 0.6);",
-                    tags$h3("Title", 
+                    tags$h4("Title", 
                             tags$i(id="toggle-icon", class="fas fa-chevron-down", style="float: right;")
                     ),
                     tags$div(id="content-area",
-                      tabsetPanel(
-                        tabPanel("Button",
-                                 actionButton("jump_to_melbourne", "Jump to Melbourne",
-                                               style = "margin-top: 10px; background-color: #F9F200; color: black;"), br(),
-                                 actionButton("show_landmarks", "Show Landmarks",
-                                               style = "margin-top: 10px; background-color: #0163FA; color: white;"), br(),
-                                 actionButton("show_bars", "Show Bars",
-                                               style = "margin-top: 10px; background-color: #9711FA; color: white;"), br(),
-                                 actionButton("show_hotels", "Show hotels",
-                                               style = "margin-top: 10px; background-color: #9711FA; color: white;"), br(),
-                                 actionButton("show_dwellings", "Show dwellings",
-                                               style = "margin-top: 10px; background-color: #9711FA; color: white;"), br(),
-                                 actionButton("show_coworkings", "Show coworkings",
-                                              style = "margin-top: 10px; background-color: #9711FA; color: white;"),  br(),),
-                        tabPanel("2", "22"),
-                      ),
+                             tabsetPanel(
+                               tabPanel("Map Setting",
+                                        actionButton("jump_to_melbourne", "Back to Melbourne Area",
+                                                     style = "margin-left: 10px; margin-top: 10px; background-color: #F9F200; color: black;"), br(),
+                                        actionButton("show_coworkings", "Coworking",
+                                                     style = "margin-left: 10px; margin-top: 10px; background-color: purple; color: white; width: 14vh;"),
+                                        actionButton("show_hotels", "Hotel",
+                                                     style = "margin-top: 10px; background-color: #FFD740; color: #333333; width: 14vh;"),
+                                        actionButton("show_bars", "Bar",
+                                                     style = "margin-top: 10px; background-color: red; color: white; width: 14vh;"), 
+                                        actionButton("show_landmarks", "Landmark",
+                                                     style = "margin-left: 10px; margin-top: 10px; margin-bottom: 10px; background-color: #0163FA; color: white; width: 14vh;"), 
+                                        actionButton("show_dwellings", "Dwelling",
+                                                     style = "margin-top: 10px;  margin-bottom: 10px; background-color: #4CAF50; color: white; width: 14vh;"), 
+                                        ),
+                               tabPanel("Page Setting", 
+                                        div(class = "custom-slider-container",
+                                            span("Light"),
+                                            div(class = "custom-slider-labels",
+                                                sliderInput("theme_slider", "", min = 0, max = 1, value = 0, step = 0.01)
+                                            ),
+                                            span("Dark")
+                                        ),
+                                        actionButton("light_mode", " Light Model", icon("sun"), 
+                                                     style = "margin-left: 20px; margin-top: 10px; margin-bottom: 10px; color: black; background-color: #E8E8E8; margin-top: 10px;"),
+                                        actionButton("dark_mode", " Dark Model", icon("moon"), 
+                                                     style = "margin-left: 100px; margin-top: 10px; margin-bottom: 10px; color: white; background-color: #212121; margin-top: 10px;"),),
+                             ),
                     )
            ),
            tags$div(id = "draggable2",
-                    style = "background-color: rgba(255, 255, 255, 0.6);",
-                    tags$h3("Title", 
+                    tags$h4("Title", 
                             tags$i(id="toggle-icon2", class="fas fa-chevron-down", style="float: right;")
                     ),
                     tags$div(id="content-area2",
-                             tabsetPanel(
-                               tabPanel("2", "22"),
-                             ),
+                             tabPanel("More Information", "content",
+                                      style = "margin-left: 10px; margin-top: 10px; margin-bottom: 10px;"),
                     )
            ),
   ),
@@ -181,9 +220,9 @@ ui <- navbarPage(
 server <- function(input, output, session) {
   
   # Define Awesome Icons
-  bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'black')
-  dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'purple', iconColor = 'black')
-  coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = 'orange', iconColor = 'black')
+  bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'white')
+  dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'green', iconColor = 'white')
+  coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
   
   # Melbourne coordinates
   lat <- -37.8136
@@ -210,12 +249,26 @@ server <- function(input, output, session) {
     session$setCurrentTheme(dark)
   })
   
+  observeEvent(input$theme_slider, {
+    slider_value <- input$theme_slider
+    # 插值背景颜色
+    interpolate_color <- colorRamp(c("white", "black"))
+    new_bg <- rgb(interpolate_color(slider_value), maxColorValue = 255)
+    
+    # 根据背景亮度选择前景颜色
+    new_fg <- ifelse(slider_value > 0.5, "white", "black")
+    
+    new_theme <- bs_theme(bootswatch = "lumen", bg = new_bg, fg = new_fg)
+    session$setCurrentTheme(new_theme)
+  })
+  
+  
   # display landmarks
   landmarks_visible <- reactiveVal(FALSE)
   observeEvent(input$show_landmarks, {
     landmarks_visible(!landmarks_visible())  # Toggle the value
     if (landmarks_visible()) {
-      landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'black')
+      landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
       proxy <- leafletProxy("map")
       proxy %>% clearMarkers()  # Clear old markers
       for (i in 1:nrow(first_50_landmarks)) {
@@ -265,7 +318,7 @@ server <- function(input, output, session) {
     hotels_visible(!hotels_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
-      hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'red', iconColor = 'black')
+      hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
       for (i in 1:nrow(first_50_hotels)) {
         proxy <- addAwesomeMarkers(
           proxy,
@@ -339,7 +392,7 @@ server <- function(input, output, session) {
         tiles = providers$CartoDB.Positron,
         toggleDisplay = TRUE, position = "bottomleft") %>%
       # 将地图聚焦在墨尔本区域
-      setView(lng = 144.9631, lat = -37.8136, zoom = 12)
+      setView(lng = 144.9631, lat = -37.8136, zoom = 14)
     
     # if (input$show_bar_icons) {
     #   # Add bar icons to the map if the checkbox is checked
@@ -380,7 +433,7 @@ server <- function(input, output, session) {
   # When the "Jump to Melbourne" button is clicked, update the map view
   observeEvent(input$jump_to_melbourne, {
     leafletProxy("map") %>%
-      setView(lng=lon, lat=lat, zoom=12)  # Update view to Melbourne
+      setView(lng=lon, lat=lat, zoom=14)  # Update view to Melbourne
   })
   
   
