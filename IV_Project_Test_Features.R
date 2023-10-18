@@ -194,11 +194,6 @@ server <- function(input, output, session) {
       }
     }
     
-    # EasyButton: zoom = 1
-    #addEasyButton(easyButton(
-    #icon="fa-globe", title="Zoom to Level 1",
-    #onClick=JS("function(btn, map){ map.setZoom(1); }"))) 
-    
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
     weather_info <- paste0("<div id='weatherControl'><img src='", weather_icon_url, 

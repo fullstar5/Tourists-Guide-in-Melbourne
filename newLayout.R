@@ -151,6 +151,12 @@ ui <- navbarPage(
 
 # ------------------------------- SHINY SERVER ------------------------------- #
 server <- function(input, output, session) {
+  
+  # Define Awesome Icons
+  bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'black')
+  dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'purple', iconColor = 'black')
+  coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = 'orange', iconColor = 'black')
+  
   # Melbourne coordinates
   lat <- -37.8136
   lon <- 144.9631
@@ -181,11 +187,11 @@ server <- function(input, output, session) {
   observeEvent(input$show_landmarks, {
     landmarks_visible(!landmarks_visible())  # Toggle the value
     if (landmarks_visible()) {
-      landmark_icon <- makeIcon(iconUrl = "icons/landmark_icon.png", iconWidth = 30, iconHeight = 30)
+      landmark_icon <- makeAwesomeIcon(icon = 'fas fa-landmark', markerColor = 'blue', iconColor = 'black')
       proxy <- leafletProxy("map")
       proxy %>% clearMarkers()  # Clear old markers
       for (i in 1:nrow(first_50_landmarks)) {
-        proxy <- addMarkers(
+        proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_landmarks[i, "longitude"],
           lat = first_50_landmarks[i, "latitude"],
@@ -208,9 +214,8 @@ server <- function(input, output, session) {
     bars_visible(!bars_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (bars_visible()) {
-      bar_icon <- makeIcon(iconUrl = "icons/bar_icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_bars)) {
-        proxy <- addMarkers(
+        proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_bars[i, "Longitude"],
           lat = first_50_bars[i, "Latitude"],
@@ -226,16 +231,15 @@ server <- function(input, output, session) {
     }
   })
   
-  
   # Display hotels
   hotels_visible <- reactiveVal(FALSE)
   observeEvent(input$show_hotels, {
     hotels_visible(!hotels_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
-      hotel_icon <- makeIcon(iconUrl = "icons/hotel_icon.png", iconWidth = 30, iconHeight = 30)
+      hotel_icon <- makeAwesomeIcon(icon = 'fa-solid fa-hotel', markerColor = 'red', iconColor = 'black')
       for (i in 1:nrow(first_50_hotels)) {
-        proxy <- addMarkers(
+        proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_hotels[i, "longitude"],
           lat = first_50_hotels[i, "latitude"],
@@ -251,16 +255,14 @@ server <- function(input, output, session) {
     }
   })
   
-  
   # Display dwellings
   dwellings_visible <- reactiveVal(FALSE)
   observeEvent(input$show_dwellings, {
     dwellings_visible(!dwellings_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (dwellings_visible()) {
-      dwelling_icon <- makeIcon(iconUrl = "icons/dwelling-icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_dwellings)) {
-        proxy <- addMarkers(
+        proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_dwellings[i, "Longitude"],
           lat = first_50_dwellings[i, "Latitude"],
@@ -282,9 +284,8 @@ server <- function(input, output, session) {
     coworking_visible(!coworking_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (coworking_visible()) {
-      coworking_icon <- makeIcon(iconUrl = "icons/coworking-icon.png", iconWidth = 30, iconHeight = 30)
       for (i in 1:nrow(first_50_coworkings)) {
-        proxy <- addMarkers(
+        proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_coworkings[i, "longitude"],
           lat = first_50_coworkings[i, "latitude"],
