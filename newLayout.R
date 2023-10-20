@@ -10,6 +10,7 @@
 
 # ------------------------------ Import Library ------------------------------ #
 library("shiny")
+library("shinyjs")
 library(shinydashboard)
 library(bslib)
 library(leaflet) # Map
@@ -17,6 +18,7 @@ library(dplyr)
 library(leaflet.extras)
 library(httr)
 library(jsonlite)
+source('tableau-in-shiny-v1.0.R')
 
 # ---------------------------- Variable Definition --------------------------- #
 ## Bar display
@@ -211,7 +213,15 @@ ui <- navbarPage(
                     )
            ),
   ),
-  tabPanel("Plot2", "Plot2"),
+  header = setUpTableauInShiny(),
+  tabPanel("Plot2", 
+           "Plot2",
+           tableauPublicViz(
+             id = "tableau1",
+             url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
+             height = "500px"
+           ),
+           ),
   tabPanel("User Guide", userGuide),
 )
 
@@ -441,4 +451,4 @@ server <- function(input, output, session) {
 
 
 # -------------------------------- RUN SHINY --------------------------------- #
-shinyApp(ui, server)
+shinyApp(ui, server, options = list(launch.browser = TRUE))
