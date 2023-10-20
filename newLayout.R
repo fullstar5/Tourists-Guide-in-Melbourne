@@ -10,7 +10,6 @@
 
 # ------------------------------ Import Library ------------------------------ #
 library("shiny")
-library("shinyjs")
 library(shinydashboard)
 library(bslib)
 library(leaflet) # Map
@@ -18,7 +17,8 @@ library(dplyr)
 library(leaflet.extras)
 library(httr)
 library(jsonlite)
-source('tableau-in-shiny-v1.0.R')
+library(purrr)
+library(sf)
 
 # ---------------------------- Variable Definition --------------------------- #
 ## Bar display
@@ -90,17 +90,6 @@ userGuide <- tabPanel(
                     "Data Source Describe")
   )
 )
-
-tableau1 <- tableauPublicViz(
-  id = "tableau1",
-  url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
-  height = "500px"
-)
-tableau2 <- tableauPublicViz(
-  id = "tableau1",
-  url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
-  height = "500px"
-)
 # ----------------------------------- UI ------------------------------------- #
 ## UI
 ui <- navbarPage(
@@ -113,7 +102,7 @@ ui <- navbarPage(
     tags$link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"),  # 添加Font Awesome
     
     tags$style("#draggable {
-                  width: 50vh;
+                  width: 45vh;
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
@@ -121,11 +110,10 @@ ui <- navbarPage(
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
-                  padding: 1vh;
                   }
                 
                 #draggable2 {
-                  width: 50vh;
+                  width: 45vh;
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
@@ -133,14 +121,13 @@ ui <- navbarPage(
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
-                  padding: 1vh;
                 }
 
                 #draggable h4 {
                   color: white;
                   background-color: black;
                   height: 4vh;
-                  padding: 1vh;
+                  padding: 0.5vh;
                 }
                 
                #draggable2 h4 {
@@ -153,9 +140,8 @@ ui <- navbarPage(
                .custom-slider-container {
                   color: black;
                   display: flex;
-                  margin-left: 5px;
+                  margin-left: 15px;
                   align-items: center;
-                  padding: 1vh;
                 }
               .custom-slider-labels {
                   color: black;
@@ -190,17 +176,20 @@ ui <- navbarPage(
                              tabsetPanel(
                                tabPanel("Map Setting",
                                         #actionButton("jump_to_melbourne", "Back to Melbourne Area",
-                                        #             style = "margin-top: 1.5vh; background-color: #F9F200; color: black;"), br(),
+                                        #             style = "margin-top: 1vh; background-color: #F9F200; color: black;"), br(),
                                         actionButton("show_coworkings", "Coworking",
-                                                     style = "margin-top: 1.5vh; background-color: purple; color: white; width: 15vh;"),
+                                                     style = "margin-left: 1vh; margin-top: 1vh; background-color: purple; color: white; width: 14vh;"),
                                         actionButton("show_hotels", "Hotel",
-                                                     style = "margin-left: 1vh; margin-top: 1.5vh; background-color: #FFD740; color: #333333; width: 15vh;"),
+                                                     style = "margin-top: 1vh; background-color: #FFD740; color: #333333; width: 14vh;"),
                                         actionButton("show_bars", "Bar",
-                                                     style = "margin-left: 1vh; margin-top: 1.5vh; background-color: red; color: white; width: 15vh;"), 
+                                                     style = "margin-top: 1vh; background-color: red; color: white; width: 14vh;"), 
                                         actionButton("show_landmarks", "Landmark",
-                                                     style = "margin-top: 1.5vh; margin-bottom: 1.5vh; background-color: #0163FA; color: white; width: 15vh;"), 
+                                                     style = "margin-left: 1vh; margin-top: 1vh; margin-bottom: 1vh; background-color: #0163FA; color: white; width: 14vh;"), 
                                         actionButton("show_dwellings", "Dwelling",
-                                                     style = "margin-left: 1vh; margin-top: 1.5vh;  margin-bottom: 1.5vh; background-color: #4CAF50; color: white; width: 15vh;"), 
+                                                     style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: #4CAF50; color: white; width: 14vh;"),
+                                        actionButton("toggle_tram_routes", "Tram",
+                                                     style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: green; color: white; width: 14vh;"),
+                                        
                                         fluidRow(
                                           column(6, selectInput("choose_coworking", "Choose Coworkings", choices = unique(coworking_data$Organisation))),
                                           column(6, selectInput("choose_hotels", "Choose Hotels", choices = unique(hotel_data$Title)))),
@@ -217,9 +206,9 @@ ui <- navbarPage(
                                             span("Dark")
                                         ),
                                         actionButton("light_mode", " Light Model", icon("sun"), 
-                                                     style = "margin-left: 5px; margin-top: 10px; margin-bottom: 10px; color: black; background-color: #E8E8E8; margin-top: 10px;"),
+                                                     style = "margin-left: 20px; margin-top: 10px; margin-bottom: 10px; color: black; background-color: #E8E8E8; margin-top: 10px;"),
                                         actionButton("dark_mode", " Dark Model", icon("moon"), 
-                                                     style = "margin-left: 115px; margin-top: 10px; margin-bottom: 10px; color: white; background-color: #212121; margin-top: 10px;"),),
+                                                     style = "margin-left: 100px; margin-top: 10px; margin-bottom: 10px; color: white; background-color: #212121; margin-top: 10px;"),),
                              ),
                     )
            ),
@@ -233,28 +222,7 @@ ui <- navbarPage(
                     )
            ),
   ),
-  header = setUpTableauInShiny(),
-  tags$style(HTML("
-    .custom-box {
-      border: 2px solid #000;  /* 黑色边框 */
-      background-color: #f9f9f9; /* 浅灰色背景 */
-    }
-    .custom-plot {
-      border: 2px solid black;  /* 橙色边框 */
-    }
-  ")),
-  tabPanel("Plot2",
-           fluidRow(
-             column(width = 4, box(title = "Card 1", "Content for card 1"), class = "custom-box"),
-             column(width = 4, box(title = "Card 2", "Content for card 1"), class = "custom-box"),
-             column(width = 4, box(title = "Card 3", "Content for card 1"), class = "custom-box"),
-           ),
-           br(),
-           fluidRow(
-             column(width = 6, tableau1, class = "custom-plot"),
-             column(width = 6, tableau2, class = "custom-plot"),
-           )
-           ),
+  tabPanel("Plot2", "Plot2"),
   tabPanel("User Guide", userGuide),
 )
 
@@ -280,7 +248,7 @@ server <- function(input, output, session) {
   
   first_50_landmarks <- head(landmarks_data, 50)
   first_50_bars <- head(bar_filtered_data, 50)
-  first_50_hotels <- head(hotel_data, 50)
+  first_500_hotels <- head(hotel_data, 500)
   first_50_dwellings <- head(dwelling_data, 50)
   first_50_coworkings <- head(coworking_data, 50)
   
@@ -362,18 +330,18 @@ server <- function(input, output, session) {
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
       hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
-      for (i in 1:nrow(first_50_hotels)) {
+      for (i in 1:nrow(first_500_hotels)) {
         proxy <- addAwesomeMarkers(
           proxy,
-          lng = first_50_hotels[i, "longitude"],
-          lat = first_50_hotels[i, "latitude"],
+          lng = first_500_hotels[i, "longitude"],
+          lat = first_500_hotels[i, "latitude"],
           icon = hotel_icon,
-          popup = first_50_hotels[i, "Location"],
+          popup = first_500_hotels[i, "Location"],
           layerId = paste0("hotel_", i)
         )
       }
     } else {
-      for (i in 1:nrow(first_50_hotels)) {
+      for (i in 1:nrow(first_500_hotels)) {
         proxy <- removeMarker(proxy, layerId = paste0("hotel_", i))
       }
     }
@@ -483,9 +451,38 @@ server <- function(input, output, session) {
     })
   })
   
+  #实现电车路线
+  data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
+  
+  # 计算独特的线路数量
+  num_unique_routes <- length(unique(data_sf$name))
+  
+  # 生成颜色映射
+  colors <- colorFactor(rainbow(num_unique_routes), data_sf$name)
+  
+  tram_routes_visible <- reactiveVal(FALSE)  # Assuming tram routes are hidden by default
+  
+  # 为每条路线生成一个颜色
+  colors <- colorFactor(rainbow(length(unique(data_sf$name))), data_sf$name)
+  
+  observeEvent(input$toggle_tram_routes, {
+    tram_routes_visible(!tram_routes_visible())  # 切换值
+    proxy <- leafletProxy("map")
+    
+    if (tram_routes_visible()) {
+      # 对每一条线路循环，添加到地图上
+      for(route in unique(data_sf$name)) {
+        route_data <- data_sf[data_sf$name == route, ]
+        proxy %>% 
+          addPolygons(data = route_data, color = colors(route), weight = 2, opacity = 1)
+      }
+    } else {
+      proxy %>% clearShapes()
+    }
+  })
   
 }
 
 
 # -------------------------------- RUN SHINY --------------------------------- #
-shinyApp(ui, server, options = list(launch.browser = TRUE))
+shinyApp(ui, server)
