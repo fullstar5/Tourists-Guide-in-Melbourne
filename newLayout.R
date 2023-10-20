@@ -228,17 +228,25 @@ ui <- navbarPage(
            ),
   ),
   header = setUpTableauInShiny(),
+  tags$style(HTML("
+    .custom-box {
+      border: 2px solid #000;  /* 黑色边框 */
+      background-color: #f9f9f9; /* 浅灰色背景 */
+    }
+    .custom-plot {
+      border: 2px solid black;  /* 橙色边框 */
+    }
+  ")),
   tabPanel("Plot2",
-           br(),
            fluidRow(
-             column(width = 4, box(title = "Card 1", "Content for card 1")),
-             column(width = 4, box(title = "Card 2", "Content for card 1")),
-             column(width = 4, box(title = "Card 3", "Content for card 1")),
+             column(width = 4, box(title = "Card 1", "Content for card 1"), class = "custom-box"),
+             column(width = 4, box(title = "Card 2", "Content for card 1"), class = "custom-box"),
+             column(width = 4, box(title = "Card 3", "Content for card 1"), class = "custom-box"),
            ),
            br(),
            fluidRow(
-             column(width = 6, tableau1),
-             column(width = 6, tableau2),
+             column(width = 6, tableau1, class = "custom-plot"),
+             column(width = 6, tableau2, class = "custom-plot"),
            )
            ),
   tabPanel("User Guide", userGuide),
