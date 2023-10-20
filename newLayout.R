@@ -94,11 +94,11 @@ userGuide <- tabPanel(
 
 tableau1 <- tableauPublicViz(
   id = "tableau1",
-  url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
+  url = "https://public.tableau.com/views/accidents_analysis/pie?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
   height = "500px"
 )
 tableau2 <- tableauPublicViz(
-  id = "tableau1",
+  id = "tableau2",
   url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
   height = "500px"
 )
@@ -205,9 +205,11 @@ ui <- navbarPage(
                                                      style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: green; color: white; width: 14vh;"),
                                         
                                         fluidRow(
-                                          column(6, selectInput("choose_coworking", "Choose Coworkings", choices = unique(coworking_data$Organisation)), class = "select"),
-                                          column(6, selectInput("choose_hotels", "Choose Hotels", choices = unique(hotel_data$Title))), class = "select"),
+                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = unique(coworking_data$Organisation)), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = unique(hotel_data$Title))), class = "select"),
+                                          # column(4, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                         fluidRow(
+                                          # column(6, selectInput("choose_landmarks", "Find Landmarks", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                           column(6, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                           column(6, selectInput("choose_dwellings", "Dwelling type", choices = unique(dwelling_data$`Dwelling type`))), class = "select")
                                         ),
