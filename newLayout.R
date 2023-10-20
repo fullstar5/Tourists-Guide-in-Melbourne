@@ -49,6 +49,12 @@ theme <- "lumen"
 light <- bs_theme(bootswatch = theme)
 dark <- bs_theme(bootswatch = theme, bg = "#212121", fg = "white")
 
+first_50_landmarks <- head(landmarks_data, 50)
+first_50_bars <- head(bar_filtered_data, 50)
+first_500_hotels <- head(hotel_data, 500)
+first_50_dwellings <- head(dwelling_data, 50)
+first_50_coworkings <- head(coworking_data, 50)
+
 # ------------------------------ Weather Extractor --------------------------- #
 # Fetch weather data from the API
 fetch_weather_data <- function(lat, lon, api_key) {
@@ -205,13 +211,13 @@ ui <- navbarPage(
                                                      style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: green; color: white; width: 14vh;"),
                                         
                                         fluidRow(
-                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = unique(coworking_data$Organisation)), class = "select"),
-                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = unique(hotel_data$Title))), class = "select"),
+                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = c("All", unique(first_50_coworkings$Organisation))), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All", unique(first_500_hotels$Title)))), class = "select"),
                                           # column(4, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                         fluidRow(
                                           # column(6, selectInput("choose_landmarks", "Find Landmarks", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
-                                          column(6, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
-                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = unique(dwelling_data$`Dwelling type`))), class = "select")
+                                          column(6, selectInput("choose_bars", "Find Bars", choices = c("All", unique(first_50_bars$Trading_name))), class = "select"),
+                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All", unique(first_50_dwellings$Dwelling.type)))), class = "select")
                                         ),
                                
                                tabPanel("Page Setting", 
@@ -272,6 +278,7 @@ server <- function(input, output, session) {
   bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'white')
   dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'green', iconColor = 'white')
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
+  hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
   
   # Melbourne coordinates
   lat <- -37.8136
@@ -283,12 +290,6 @@ server <- function(input, output, session) {
   weather_data <- api_data$main
   weather_description <- api_data$weather$description[1]
   weather_icon_id <- api_data$weather$icon[1]
-  
-  first_50_landmarks <- head(landmarks_data, 50)
-  first_50_bars <- head(bar_filtered_data, 50)
-  first_500_hotels <- head(hotel_data, 500)
-  first_50_dwellings <- head(dwelling_data, 50)
-  first_50_coworkings <- head(coworking_data, 50)
   
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
@@ -367,7 +368,6 @@ server <- function(input, output, session) {
     hotels_visible(!hotels_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
-      hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
       for (i in 1:nrow(first_500_hotels)) {
         proxy <- addAwesomeMarkers(
           proxy,
@@ -430,6 +430,7 @@ server <- function(input, output, session) {
       }
     }
   })
+  
   
   ## Map
   output$map <- renderLeaflet({
@@ -517,6 +518,57 @@ server <- function(input, output, session) {
     } else {
       proxy %>% clearShapes()
     }
+  })
+  
+  
+  # Selector
+  
+  observeEvent(input$choose_dwellings, {
+    selected_data <- if(input$choose_dwellings != "All") {
+      subset(first_50_dwellings, Dwelling.type == input$choose_dwellings)
+    } else {
+      first_50_dwellings  # if "All"，return all
+    }
+    # upload
+    leafletProxy("map") %>%
+      clearMarkers() %>%  # clear
+      addAwesomeMarkers(data = selected_data, icon = dwelling_icon, lng = ~Longitude, lat = ~Latitude)
+  })
+  
+  observeEvent(input$choose_hotels, {
+    if(input$choose_hotels != "All") {
+      selected_data <- subset(first_500_hotels, Title == input$choose_hotels)
+    } else {
+      selected_data <- first_500_hotels
+    }
+    
+    leafletProxy("map") %>%
+      clearMarkers() %>%
+      addAwesomeMarkers(data = selected_data, icon = hotel_icon, lng = ~longitude, lat = ~latitude)
+  })
+  
+  # column(6, selectInput("choose_bars", "Find Bars", choices = c("All", unique(first_50_bars$Trading_name))), class = "select"),
+  observeEvent(input$choose_bars, {
+    if(input$choose_bars != "All") {
+      selected_data <- subset(first_50_bars, Trading_name == input$choose_bars)
+    } else {
+      selected_data <- first_50_bars
+    }
+    
+    leafletProxy("map") %>%
+      clearMarkers() %>%
+      addAwesomeMarkers(data = selected_data, icon = bar_icon, lng = ~Longitude, lat = ~Latitude)
+  })
+  
+  observeEvent(input$choose_coworking, {
+    selected_data <- if(input$choose_coworking != "All") {
+      subset(first_50_coworkings, Organisation == input$choose_coworking)
+    } else {
+      selected_data <- first_50_coworkings
+    }
+    leafletProxy("map") %>%
+      clearMarkers() %>%
+      addAwesomeMarkers(data = selected_data, icon = coworking_icon, lng = ~longitude, lat = ~latitude)
   })
   
 }
