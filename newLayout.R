@@ -117,7 +117,7 @@ ui <- navbarPage(
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 12vh;
+                  top: 10vh;
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
@@ -129,7 +129,7 @@ ui <- navbarPage(
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 48vh;
+                  top: 62vh;
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
@@ -189,8 +189,8 @@ ui <- navbarPage(
                     tags$div(id="content-area",
                              tabsetPanel(
                                tabPanel("Map Setting",
-                                        actionButton("jump_to_melbourne", "Back to Melbourne Area",
-                                                     style = "margin-top: 1.5vh; background-color: #F9F200; color: black;"), br(),
+                                        #actionButton("jump_to_melbourne", "Back to Melbourne Area",
+                                        #             style = "margin-top: 1.5vh; background-color: #F9F200; color: black;"), br(),
                                         actionButton("show_coworkings", "Coworking",
                                                      style = "margin-top: 1.5vh; background-color: purple; color: white; width: 15vh;"),
                                         actionButton("show_hotels", "Hotel",
@@ -201,6 +201,12 @@ ui <- navbarPage(
                                                      style = "margin-top: 1.5vh; margin-bottom: 1.5vh; background-color: #0163FA; color: white; width: 15vh;"), 
                                         actionButton("show_dwellings", "Dwelling",
                                                      style = "margin-left: 1vh; margin-top: 1.5vh;  margin-bottom: 1.5vh; background-color: #4CAF50; color: white; width: 15vh;"), 
+                                        fluidRow(
+                                          column(6, selectInput("choose_coworking", "Choose Coworkings", choices = unique(coworking_data$Organisation))),
+                                          column(6, selectInput("choose_hotels", "Choose Hotels", choices = unique(hotel_data$Title)))),
+                                        fluidRow(
+                                          column(6, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name))),
+                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = unique(dwelling_data$`Dwelling type`))))
                                         ),
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
@@ -429,7 +435,8 @@ server <- function(input, output, session) {
         tiles = providers$CartoDB.Positron,
         toggleDisplay = TRUE, position = "bottomleft") %>%
       # 将地图聚焦在墨尔本区域
-      setView(lng = 144.9631, lat = -37.8136, zoom = 14)
+      setView(lng = 144.9631, lat = -37.8136, zoom = 14) %>%
+      addControl(html = "<button id='jumpButton'>Jump to Melbourne</button>", position = "bottomleft")
     
     # if (input$show_bar_icons) {
     #   # Add bar icons to the map if the checkbox is checked
@@ -468,9 +475,12 @@ server <- function(input, output, session) {
   })
   
   # When the "Jump to Melbourne" button is clicked, update the map view
-  observeEvent(input$jump_to_melbourne, {
-    leafletProxy("map") %>%
-      setView(lng=lon, lat=lat, zoom=14)  # Update view to Melbourne
+  observe({
+    # Use shinyjs to detect when the button is clicked
+    shinyjs::onclick("jumpButton", {
+      leafletProxy("map") %>%
+        setView(lng=lon, lat=lat, zoom=14)  # Update view to Melbourne
+    })
   })
   
   
