@@ -9,7 +9,7 @@
 # Project introduction: Assignment3
 
 # ------------------------------ Import Library ------------------------------ #
-library(shiny)
+library("shiny")
 library(shinydashboard)
 library(bslib)
 library(leaflet) # Map
@@ -100,7 +100,7 @@ userGuide <- tabPanel(
 
 tableau1 <- tableauPublicViz(
   id = "tableau1",
-  url = "https://public.tableau.com/views/accidents_analysis/pie?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
+  url = "https://public.tableau.com/views/accidents_analysis/pieChart?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
   height = "500px"
 )
 tableau2 <- tableauPublicViz(
@@ -212,13 +212,14 @@ ui <- navbarPage(
                                         
                                         fluidRow(
                                           column(6, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworkings", unique(first_50_coworkings$Organisation))), class = "select"),
-                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_50_hotels$Title)))), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_50_hotels$Title))), class = "select")),
                                           # column(4, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
+
                                         fluidRow(
                                           # column(6, selectInput("choose_landmarks", "Find Landmarks", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                           column(6, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),
                                           column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type)))), class = "select")
-                                        ),
+                               ),
                                
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
@@ -240,7 +241,7 @@ ui <- navbarPage(
                             tags$i(id="toggle-icon2", class="fas fa-chevron-down", style="float: right;")
                     ),
                     tags$div(id="content-area2",
-                             tabPanel("More Information", "content",
+                             tabPanel("More Information",  uiOutput("more_information_content"),
                                       style = "margin-left: 10px; margin-top: 10px; margin-bottom: 10px;"),
                     )
            ),
@@ -266,7 +267,7 @@ ui <- navbarPage(
              column(width = 6, tableau1, class = "custom-plot"),
              column(width = 6, tableau2, class = "custom-plot"),
            )
-           ),
+  ),
   tabPanel("User Guide", userGuide),
 )
 
@@ -278,8 +279,8 @@ server <- function(input, output, session) {
   bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'white')
   dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'green', iconColor = 'white')
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
-  hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
   landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
+  hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
   
   # Melbourne coordinates
   lat <- -37.8136
@@ -291,7 +292,13 @@ server <- function(input, output, session) {
   weather_data <- api_data$main
   weather_description <- api_data$weather$description[1]
   weather_icon_id <- api_data$weather$icon[1]
-
+  
+  first_50_landmarks <- head(landmarks_data, 50)
+  first_50_bars <- head(bar_filtered_data, 50)
+  first_500_hotels <- head(hotel_data, 500)
+  first_50_dwellings <- head(dwelling_data, 50)
+  first_50_coworkings <- head(coworking_data, 50)
+  
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
     session$setCurrentTheme(light)
@@ -308,6 +315,7 @@ server <- function(input, output, session) {
     
     # 根据背景亮度选择前景颜色
     new_fg <- ifelse(slider_value > 0.5, "white", "black")
+    
     new_theme <- bs_theme(bootswatch = "lumen", bg = new_bg, fg = new_fg)
     session$setCurrentTheme(new_theme)
   })
@@ -584,6 +592,7 @@ server <- function(input, output, session) {
   observeEvent(input$show_landmarks, {
     landmarks_visible(!landmarks_visible())  # Toggle the value
     if (landmarks_visible()) {
+      landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
       proxy <- leafletProxy("map")
       # proxy %>% clearMarkers()  # Clear old markers
       for (i in 1:nrow(first_50_landmarks)) {
@@ -631,6 +640,36 @@ server <- function(input, output, session) {
     #     )
     #   }
     # }
+    
+    # 创建用于显示 Business address 的响应性值
+    business_address_info <- reactiveVal("")
+    
+    # 监听 bar 图标的点击事件
+    observeEvent(input$map_marker_click, {
+      event <- input$map_marker_click
+      if (is.null(event)) {
+        return()  # 如果没有点击事件，不执行任何操作
+      }
+      
+      # 获取点击的图标的 ID，例如 "bar_1"
+      marker_id <- event$id
+      
+      # 从 ID 中提取索引，以查找对应的 Business address
+      index <- as.numeric(gsub("bar_", "", marker_id))
+      
+      if (!is.na(index) && index >= 1 && index <= nrow(first_50_bars)) {
+        # 获取对应 bar 的 Business address
+        business_address <- first_50_bars[index, "Business_address"]
+        
+        # 更新响应性值，以便在 UI 中显示 Business address
+        business_address_info(business_address)
+      }
+    })
+    
+    # 在 "More Information" tabPanel 中显示 Business address
+    output$more_information_content <- renderText({
+      business_address_info()
+    })
     
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
@@ -743,13 +782,18 @@ server <- function(input, output, session) {
   
   #实现电车路线
   data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
+  
   # 计算独特的线路数量
   num_unique_routes <- length(unique(data_sf$name))
+  
   # 生成颜色映射
   colors <- colorFactor(rainbow(num_unique_routes), data_sf$name)
+  
   tram_routes_visible <- reactiveVal(FALSE)  # Assuming tram routes are hidden by default
+  
   # 为每条路线生成一个颜色
   colors <- colorFactor(rainbow(length(unique(data_sf$name))), data_sf$name)
+  
   observeEvent(input$toggle_tram_routes, {
     tram_routes_visible(!tram_routes_visible())  # 切换值
     proxy <- leafletProxy("map")
