@@ -110,6 +110,7 @@ ui <- navbarPage(
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
+                  padding: 1vh;
                   }
                 
                 #draggable2 {
@@ -121,6 +122,7 @@ ui <- navbarPage(
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
+                  padding: 1vh;
                 }
 
                 #draggable h4 {
@@ -178,25 +180,26 @@ ui <- navbarPage(
                                         #actionButton("jump_to_melbourne", "Back to Melbourne Area",
                                         #             style = "margin-top: 1vh; background-color: #F9F200; color: black;"), br(),
                                         actionButton("show_coworkings", "Coworking",
-                                                     style = "margin-left: 1vh; margin-top: 1vh; background-color: purple; color: white; width: 14vh;"),
+                                                     style = "margin-top: 1vh; background-color: purple; color: white; width: 14vh;"),
                                         actionButton("show_hotels", "Hotel",
                                                      style = "margin-top: 1vh; background-color: #FFD740; color: #333333; width: 14vh;"),
                                         actionButton("show_bars", "Bar",
                                                      style = "margin-top: 1vh; background-color: red; color: white; width: 14vh;"), 
                                         actionButton("show_landmarks", "Landmark",
-                                                     style = "margin-left: 1vh; margin-top: 1vh; margin-bottom: 1vh; background-color: #0163FA; color: white; width: 14vh;"), 
+                                                     style = "margin-top: 1vh; margin-bottom: 1vh; background-color: #0163FA; color: white; width: 14vh;"), 
                                         actionButton("show_dwellings", "Dwelling",
                                                      style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: #4CAF50; color: white; width: 14vh;"),
                                         actionButton("toggle_tram_routes", "Tram",
                                                      style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: green; color: white; width: 14vh;"),
                                         
                                         fluidRow(
-                                          column(6, selectInput("choose_coworking", "Choose Coworkings", choices = unique(coworking_data$Organisation))),
-                                          column(6, selectInput("choose_hotels", "Choose Hotels", choices = unique(hotel_data$Title)))),
+                                          column(6, selectInput("choose_coworking", "Choose Coworkings", choices = unique(coworking_data$Organisation)), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Choose Hotels", choices = unique(hotel_data$Title))), class = "select"),
                                         fluidRow(
-                                          column(6, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name))),
-                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = unique(dwelling_data$`Dwelling type`))))
+                                          column(6, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
+                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = unique(dwelling_data$`Dwelling type`))), class = "select")
                                         ),
+                               
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
                                             span("Light"),
