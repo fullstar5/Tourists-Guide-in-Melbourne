@@ -211,13 +211,13 @@ ui <- navbarPage(
                                                      style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: green; color: white; width: 14vh;"),
                                         
                                         fluidRow(
-                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = c("All", unique(first_50_coworkings$Organisation))), class = "select"),
-                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All", unique(first_500_hotels$Title)))), class = "select"),
+                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworkings", unique(first_50_coworkings$Organisation))), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_500_hotels$Title)))), class = "select"),
                                           # column(4, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                         fluidRow(
                                           # column(6, selectInput("choose_landmarks", "Find Landmarks", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
-                                          column(6, selectInput("choose_bars", "Find Bars", choices = c("All", unique(first_50_bars$Trading_name))), class = "select"),
-                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All", unique(first_50_dwellings$Dwelling.type)))), class = "select")
+                                          column(6, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),
+                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type)))), class = "select")
                                         ),
                                
                                tabPanel("Page Setting", 
@@ -279,6 +279,7 @@ server <- function(input, output, session) {
   dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'green', iconColor = 'white')
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
   hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
+  landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
   
   # Melbourne coordinates
   lat <- -37.8136
@@ -307,20 +308,67 @@ server <- function(input, output, session) {
     
     # 根据背景亮度选择前景颜色
     new_fg <- ifelse(slider_value > 0.5, "white", "black")
-    
     new_theme <- bs_theme(bootswatch = "lumen", bg = new_bg, fg = new_fg)
     session$setCurrentTheme(new_theme)
   })
   
+  
+  # Selector
+  observeEvent(input$choose_dwellings, {
+    selected_data <- if(input$choose_dwellings != "All Dwellings") {
+      subset(first_50_dwellings, Dwelling.type == input$choose_dwellings)
+    } else {
+      first_50_dwellings  # if "All"，return all
+    }
+    # upload
+    leafletProxy("map") %>%
+      clearMarkers() %>%  # clear
+      addAwesomeMarkers(data = selected_data, icon = dwelling_icon, lng = ~Longitude, lat = ~Latitude)
+  })
+  
+  observeEvent(input$choose_hotels, {
+    if(input$choose_hotels != "All Hotels") {
+      selected_data <- subset(first_500_hotels, Title == input$choose_hotels)
+    } else {
+      selected_data <- first_500_hotels
+    }
+    
+    leafletProxy("map") %>%
+      clearMarkers() %>%
+      addAwesomeMarkers(data = selected_data, icon = hotel_icon, lng = ~longitude, lat = ~latitude)
+  })
+  
+  # column(6, selectInput("choose_bars", "Find Bars", choices = c("All", unique(first_50_bars$Trading_name))), class = "select"),
+  observeEvent(input$choose_bars, {
+    if(input$choose_bars != "All Bars") {
+      selected_data <- subset(first_50_bars, Trading_name == input$choose_bars)
+    } else {
+      selected_data <- first_50_bars
+    }
+    
+    leafletProxy("map") %>%
+      clearMarkers() %>%
+      addAwesomeMarkers(data = selected_data, icon = bar_icon, lng = ~Longitude, lat = ~Latitude)
+  })
+  
+  observeEvent(input$choose_coworking, {
+    selected_data <- if(input$choose_coworking != "All Coworkings") {
+      subset(first_50_coworkings, Organisation == input$choose_coworking)
+    } else {
+      selected_data <- first_50_coworkings
+    }
+    leafletProxy("map") %>%
+      clearMarkers() %>%
+      addAwesomeMarkers(data = selected_data, icon = coworking_icon, lng = ~longitude, lat = ~latitude)
+  })
   
   # display landmarks
   landmarks_visible <- reactiveVal(FALSE)
   observeEvent(input$show_landmarks, {
     landmarks_visible(!landmarks_visible())  # Toggle the value
     if (landmarks_visible()) {
-      landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
       proxy <- leafletProxy("map")
-      proxy %>% clearMarkers()  # Clear old markers
+      # proxy %>% clearMarkers()  # Clear old markers
       for (i in 1:nrow(first_50_landmarks)) {
         proxy <- addAwesomeMarkers(
           proxy,
@@ -437,6 +485,12 @@ server <- function(input, output, session) {
     # Create Leaflet Map
     m <- leaflet() %>%
       addTiles() %>%
+      clearMarkers() %>%
+      addAwesomeMarkers(data = first_500_hotels, icon = hotel_icon, lng = ~longitude, lat = ~latitude) %>%
+      addAwesomeMarkers(data = first_50_bars, icon = bar_icon, lng = ~Longitude, lat = ~Latitude) %>%
+      addAwesomeMarkers(data = first_50_coworkings, icon = coworking_icon, lng = ~longitude, lat = ~latitude) %>%
+      addAwesomeMarkers(data = first_50_dwellings, icon = dwelling_icon, lng = ~Longitude, lat = ~Latitude) %>%
+      addAwesomeMarkers(data = first_50_landmarks, icon = landmark_icon, lng = ~longitude, lat = ~latitude) %>%
       # Mini Map
       addMiniMap(
         tiles = providers$CartoDB.Positron,
@@ -592,57 +646,6 @@ server <- function(input, output, session) {
     } else {
       proxy %>% clearShapes()
     }
-  })
-  
-  
-  # Selector
-  
-  observeEvent(input$choose_dwellings, {
-    selected_data <- if(input$choose_dwellings != "All") {
-      subset(first_50_dwellings, Dwelling.type == input$choose_dwellings)
-    } else {
-      first_50_dwellings  # if "All"，return all
-    }
-    # upload
-    leafletProxy("map") %>%
-      clearMarkers() %>%  # clear
-      addAwesomeMarkers(data = selected_data, icon = dwelling_icon, lng = ~Longitude, lat = ~Latitude)
-  })
-  
-  observeEvent(input$choose_hotels, {
-    if(input$choose_hotels != "All") {
-      selected_data <- subset(first_500_hotels, Title == input$choose_hotels)
-    } else {
-      selected_data <- first_500_hotels
-    }
-    
-    leafletProxy("map") %>%
-      clearMarkers() %>%
-      addAwesomeMarkers(data = selected_data, icon = hotel_icon, lng = ~longitude, lat = ~latitude)
-  })
-  
-  # column(6, selectInput("choose_bars", "Find Bars", choices = c("All", unique(first_50_bars$Trading_name))), class = "select"),
-  observeEvent(input$choose_bars, {
-    if(input$choose_bars != "All") {
-      selected_data <- subset(first_50_bars, Trading_name == input$choose_bars)
-    } else {
-      selected_data <- first_50_bars
-    }
-    
-    leafletProxy("map") %>%
-      clearMarkers() %>%
-      addAwesomeMarkers(data = selected_data, icon = bar_icon, lng = ~Longitude, lat = ~Latitude)
-  })
-  
-  observeEvent(input$choose_coworking, {
-    selected_data <- if(input$choose_coworking != "All") {
-      subset(first_50_coworkings, Organisation == input$choose_coworking)
-    } else {
-      selected_data <- first_50_coworkings
-    }
-    leafletProxy("map") %>%
-      clearMarkers() %>%
-      addAwesomeMarkers(data = selected_data, icon = coworking_icon, lng = ~longitude, lat = ~latitude)
   })
   
 }
