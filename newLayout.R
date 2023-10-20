@@ -22,9 +22,6 @@ library(sf)
 library(shinyjs)
 
 # ---------------------------- Variable Definition --------------------------- #
-<<<<<<< Updated upstream
-## Dataset
-=======
 ## Bar display
 # 读取CSV数据集
 bar_data <- read.csv("new_data/bars-and-pubs-with-patron-capacity.csv")
@@ -44,7 +41,6 @@ landmarks_data <- read.csv("new_data/melbourne_city_landmarks(new).csv")
 hotel_data <- read.csv("new_data/melbourne_and_metropolitan_hotels_pubs_and_publicans(new).csv")
 dwelling_data <- read.csv("new_data/residential-dwellings.csv")
 coworking_data <- read.csv("new_data/coworking-spaces.csv")
->>>>>>> Stashed changes
 
 ## Page layout Settings
 # Bootstrap Theme and dark mode (https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic)
@@ -77,10 +73,6 @@ get_main_weather_data <- function(lat, lon, api_key) {
   return(main_data)
 }
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 # ------------------------------ USER INTERFACE ------------------------------ #
 ## Page components
 # Left Page
@@ -99,28 +91,7 @@ userGuide <- tabPanel(
                     "Data Source Describe")
   )
 )
-<<<<<<< Updated upstream
-
-# -------------------------------- Bar display --------------------------------- #
-
-# 读取CSV数据集
-bar_data <- read.csv("raw_data/bars-and-pubs-with-patron-capacity.csv")
-
-# 过滤数据集
-bar_filtered_data <- bar_data %>%
-  filter(!is.na("Business address") &          # Business address 不为空
-           !is.na(Longitude) &                   # Longitude 不为空
-           !is.na(Latitude) &                    # Latitude 不为空
-           "Census_year" > 2012 &               # Census year 大于 2022
-           "Census_year" < 2023 &               # Census year 小于 2023
-           grepl("bar", "Trading name", ignore.case = TRUE))  # Trading name 包含 "bar"（不区分大小写）
-
-
-
-
-=======
 # ----------------------------------- UI ------------------------------------- #
->>>>>>> Stashed changes
 ## UI
 ui <- navbarPage(
   "Tourist Melbourne",
@@ -131,25 +102,6 @@ ui <- navbarPage(
     tags$script(src = "https://code.jquery.com/ui/1.12.1/jquery-ui.js"),
     tags$link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"),  # 添加Font Awesome
     
-<<<<<<< Updated upstream
-    h4("Page Setting"),
-    actionButton("light_mode", " Light Model", icon("sun"), style = "color: black; background-color: #E8E8E8;"),
-    actionButton("dark_mode", " Dark Model", icon("moon"), style = "color: white; background-color: #212121;"),
-  ),
-  
-  dashboardBody(
-    # Left and right layout (Above)
-    fluidRow(
-      # Left Page
-      column(8, tabsetPanel(id = "left_tabs", 
-                            map)),
-      # Right Page
-      column(4, tabsetPanel(id = "right_tabs",
-                            tab1, tab2)),
-      # -------------------------------- Bar display --------------------------------- #
-      # Checkbox to control bar icon visibility
-      checkboxInput("show_bar_icons", "Show Bar Icons", value = TRUE)  
-=======
     tags$style("#draggable {
                   width: 45vh;
                   height: auto;  # 改为自动，以适应内容
@@ -196,7 +148,6 @@ ui <- navbarPage(
                   color: black;
                   margin: 0 10px;
                }"
->>>>>>> Stashed changes
     ),
     
     tags$script('$(document).ready(function() {
@@ -240,7 +191,7 @@ ui <- navbarPage(
                                                      style = "margin-top: 10px;  margin-bottom: 10px; background-color: #4CAF50; color: white; width: 14vh;"), 
                                         actionButton("toggle_tram_routes", "Tram",
                                                      style = "margin-top: 10px;  margin-bottom: 10px; background-color: green; color: white; width: 14vh;")
-                               ),
+                                        ),
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
                                             span("Light"),
@@ -271,9 +222,6 @@ ui <- navbarPage(
 
 
 # ------------------------------- SHINY SERVER ------------------------------- #
-<<<<<<< Updated upstream
-server <- function(input, output, session) { 
-=======
 server <- function(input, output, session) {
   
   # Define Awesome Icons
@@ -281,7 +229,6 @@ server <- function(input, output, session) {
   dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'green', iconColor = 'white')
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
   
->>>>>>> Stashed changes
   # Melbourne coordinates
   lat <- -37.8136
   lon <- 144.9631
@@ -293,16 +240,12 @@ server <- function(input, output, session) {
   weather_description <- api_data$weather$description[1]
   weather_icon_id <- api_data$weather$icon[1]
   
-<<<<<<< Updated upstream
-  ## Dynamic theming
-=======
   first_50_landmarks <- head(landmarks_data, 50)
   first_50_bars <- head(bar_filtered_data, 50)
   first_500_hotels <- head(hotel_data, 100)
   first_50_dwellings <- head(dwelling_data, 50)
   first_50_coworkings <- head(coworking_data, 50)
   
->>>>>>> Stashed changes
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
     session$setCurrentTheme(light)
@@ -311,10 +254,6 @@ server <- function(input, output, session) {
     session$setCurrentTheme(dark)
   })
   
-<<<<<<< Updated upstream
-  
-  
-=======
   observeEvent(input$theme_slider, {
     slider_value <- input$theme_slider
     # 插值背景颜色
@@ -448,7 +387,6 @@ server <- function(input, output, session) {
     }
   })
   
->>>>>>> Stashed changes
   ## Map
   output$map <- renderLeaflet({
     # Create Leaflet Map
@@ -460,32 +398,6 @@ server <- function(input, output, session) {
         toggleDisplay = TRUE, position = "bottomleft") %>%
       # 将地图聚焦在墨尔本区域
       setView(lng = 144.9631, lat = -37.8136, zoom = 14)
-    
-    # -------------------------------- Bar display --------------------------------- #
-    if (input$show_bar_icons) {
-      # Add bar icons to the map if the checkbox is checked
-      for (i in 1:nrow(bar_filtered_data)) {
-        bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
-        m <- addMarkers(
-          m,
-          lng = bar_filtered_data[i, "Longitude"],
-          lat = bar_filtered_data[i, "Latitude"],
-          icon = bar_icon,
-          popup = bar_filtered_data[i, "Business_address"]
-        )
-      }
-    }
-    
-    
-    
-    # EasyButton: zoom = 1
-    #addEasyButton(easyButton(
-    #icon="fa-globe", title="Zoom to Level 1",
-    #onClick=JS("function(btn, map){ map.setZoom(1); }"))) 
-    
-    
-    
-    
     
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
@@ -507,8 +419,6 @@ server <- function(input, output, session) {
                      }
                    }")))
   })
-<<<<<<< Updated upstream
-=======
   
   # When the "Jump to Melbourne" button is clicked, update the map view
   observeEvent(input$jump_to_melbourne, {
@@ -577,26 +487,26 @@ server <- function(input, output, session) {
   
   
   
-  
+
   
   #实现电车路线
   data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
-  
+
   # 计算独特的线路数量
   num_unique_routes <- length(unique(data_sf$name))
-  
+
   # 生成颜色映射
   colors <- colorFactor(rainbow(num_unique_routes), data_sf$name)
-  
+
   tram_routes_visible <- reactiveVal(FALSE)  # Assuming tram routes are hidden by default
-  
+
   # 为每条路线生成一个颜色
   colors <- colorFactor(rainbow(length(unique(data_sf$name))), data_sf$name)
-  
+
   observeEvent(input$toggle_tram_routes, {
     tram_routes_visible(!tram_routes_visible())  # 切换值
     proxy <- leafletProxy("map")
-    
+
     if (tram_routes_visible()) {
       # 对每一条线路循环，添加到地图上
       for(route in unique(data_sf$name)) {
@@ -609,7 +519,8 @@ server <- function(input, output, session) {
     }
   })
   
->>>>>>> Stashed changes
 }
+
+
 # -------------------------------- RUN SHINY --------------------------------- #
 shinyApp(ui, server)
