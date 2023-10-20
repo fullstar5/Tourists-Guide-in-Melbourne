@@ -19,6 +19,7 @@ library(httr)
 library(jsonlite)
 library(purrr)
 library(sf)
+source('tableau-in-shiny-v1.0.R')
 
 # ---------------------------- Variable Definition --------------------------- #
 ## Bar display
@@ -89,6 +90,17 @@ userGuide <- tabPanel(
     accordion_panel("Data Source",
                     "Data Source Describe")
   )
+)
+
+tableau1 <- tableauPublicViz(
+  id = "tableau1",
+  url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
+  height = "500px"
+)
+tableau2 <- tableauPublicViz(
+  id = "tableau1",
+  url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
+  height = "500px"
 )
 # ----------------------------------- UI ------------------------------------- #
 ## UI
@@ -225,7 +237,28 @@ ui <- navbarPage(
                     )
            ),
   ),
-  tabPanel("Plot2", "Plot2"),
+  
+  header = setUpTableauInShiny(),
+  tags$style(HTML("
+    .custom-box {
+      border: 2px solid #000;  /* 黑色边框 */
+      background-color: #f9f9f9; /* 浅灰色背景 */
+    }
+    .custom-plot {
+      border: 2px solid black;  /* 橙色边框 */
+    }
+  ")),
+  tabPanel("Plot2",
+           fluidRow(
+             column(width = 4, box(title = "Card 1", "Content for card 1"), class = "custom-box"),
+             column(width = 4, box(title = "Card 2", "Content for card 1"), class = "custom-box"),
+             column(width = 4, box(title = "Card 3", "Content for card 1"), class = "custom-box"),
+           ),
+           fluidRow(
+             column(width = 6, tableau1, class = "custom-plot"),
+             column(width = 6, tableau2, class = "custom-plot"),
+           )
+           ),
   tabPanel("User Guide", userGuide),
 )
 
@@ -488,4 +521,4 @@ server <- function(input, output, session) {
 
 
 # -------------------------------- RUN SHINY --------------------------------- #
-shinyApp(ui, server)
+shinyApp(ui, server, options = list(launch.browser = TRUE))
