@@ -271,6 +271,8 @@ server <- function(input, output, session) {
   bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'white')
   dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'green', iconColor = 'white')
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
+  landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
+  hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
   
   # Melbourne coordinates
   lat <- -37.8136
@@ -316,9 +318,7 @@ server <- function(input, output, session) {
   observeEvent(input$show_landmarks, {
     landmarks_visible(!landmarks_visible())  # Toggle the value
     if (landmarks_visible()) {
-      landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
       proxy <- leafletProxy("map")
-      proxy %>% clearMarkers()  # Clear old markers
       for (i in 1:nrow(first_50_landmarks)) {
         proxy <- addAwesomeMarkers(
           proxy,
@@ -366,7 +366,6 @@ server <- function(input, output, session) {
     hotels_visible(!hotels_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
-      hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
       for (i in 1:nrow(first_500_hotels)) {
         proxy <- addAwesomeMarkers(
           proxy,
@@ -446,14 +445,12 @@ server <- function(input, output, session) {
     
     # 创建用于显示 Business address 的响应性值
     address_info <- reactiveVal("")
-    
     # 监听图标的点击事件
     observeEvent(input$map_marker_click, {
       event <- input$map_marker_click
       if (is.null(event)) {
         return()  # 如果没有点击事件，不执行任何操作
       }
-      
       # 获取点击的图标的 ID
       marker_id <- event$id
       marker_type <- gsub("_[0-9]+$", "", marker_id)  # Extracting the marker type
@@ -481,17 +478,20 @@ server <- function(input, output, session) {
           address <- dwelling_data[index, "Address"]
         }
       }
+      # Construct business hours information
+      days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+      hours <- "7:00 to 18:00"
+      business_hours_info <- paste(days, hours, sep=": ", collapse="<br>")
       
+      # Append business hours to the fetched address
+      full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
       # 更新响应性值，以便在 UI 中显示地址
-      address_info(address)
+      address_info(full_info)
     })
-    
     # 在 "More Information" tabPanel 中显示地址
     output$more_information_content <- renderText({
       address_info()
     })
-    
-    
     
     
     # Weather info as HTML
