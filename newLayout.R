@@ -9,7 +9,7 @@
 # Project introduction: Assignment3
 
 # ------------------------------ Import Library ------------------------------ #
-library("shiny")
+library(shiny)
 library(shinydashboard)
 library(bslib)
 library(leaflet) # Map
@@ -286,7 +286,7 @@ server <- function(input, output, session) {
   
   first_50_landmarks <- head(landmarks_data, 50)
   first_50_bars <- head(bar_filtered_data, 50)
-  first_500_hotels <- head(hotel_data, 500)
+  first_500_hotels <- head(hotel_data, 100)
   first_50_dwellings <- head(dwelling_data, 50)
   first_50_coworkings <- head(coworking_data, 50)
   
@@ -489,20 +489,94 @@ server <- function(input, output, session) {
     })
   })
   
+  # Display information penal
+  observe({
+    click <- input$map_marker_click
+    if (is.null(click)) return()
+    
+    clicked_lat <- click$lat
+    clicked_lng <- click$lng
+    tolerance <- 0.0001  # A small number to account for tiny variations in lat/lng values
+    
+    # Check for landmarks
+    if (any(abs(first_50_landmarks$latitude - clicked_lat) < tolerance & 
+            abs(first_50_landmarks$longitude - clicked_lng) < tolerance)) {
+      dataset <- "landmark"
+      data <- first_50_landmarks
+      idx <- which.min(sqrt((first_50_landmarks$latitude - clicked_lat)^2 + 
+                              (first_50_landmarks$longitude - clicked_lng)^2))
+    } 
+    # Check for bars
+    else if (any(abs(first_50_bars$Latitude - clicked_lat) < tolerance & 
+                 abs(first_50_bars$Longitude - clicked_lng) < tolerance)) {
+      dataset <- "bar"
+      data <- first_50_bars
+      idx <- which.min(sqrt((first_50_bars$Latitude - clicked_lat)^2 + 
+                              (first_50_bars$Longitude - clicked_lng)^2))
+    }
+    # Check for hotels
+    else if (any(abs(first_500_hotels$latitude - clicked_lat) < tolerance & 
+                 abs(first_500_hotels$longitude - clicked_lng) < tolerance)) {
+      dataset <- "hotel"
+      data <- first_500_hotels
+      idx <- which.min(sqrt((first_500_hotels$latitude - clicked_lat)^2 + 
+                              (first_500_hotels$longitude - clicked_lng)^2))
+    }
+    # Check for dwellings
+    else if (any(abs(first_50_dwellings$Latitude - clicked_lat) < tolerance & 
+                 abs(first_50_dwellings$Longitude - clicked_lng) < tolerance)) {
+      dataset <- "dwelling"
+      data <- first_50_dwellings
+      idx <- which.min(sqrt((first_50_dwellings$Latitude - clicked_lat)^2 + 
+                              (first_50_dwellings$Longitude - clicked_lng)^2))
+    }
+    # Check for coworking spaces
+    else if (any(abs(first_50_coworkings$latitude - clicked_lat) < tolerance & 
+                 abs(first_50_coworkings$longitude - clicked_lng) < tolerance)) {
+      dataset <- "coworking"
+      data <- first_50_coworkings
+      idx <- which.min(sqrt((first_50_coworkings$latitude - clicked_lat)^2 + 
+                              (first_50_coworkings$longitude - clicked_lng)^2))
+    }
+    else {
+      return()
+    }
+    
+    # Extract and format the information
+    address <- switch(dataset,
+                      landmark = data$Title[idx],
+                      bar = data$Business_address[idx],
+                      hotel = data$Location[idx],
+                      dwelling = data$Building_address[idx],
+                      coworking = data$Address[idx]
+    )
+    description <- ifelse(is.na(data$Description[idx]), "None", data$Description[idx]) # Assuming 'Description' is the column name
+    business_hours <- "7:00am to 18:00pm for all days from Monday to Friday"
+    types <- dataset
+    
+    # Populate the #draggable2 floating window
+    output$draggable2_content <- renderUI({
+      tagList(
+        tags$h4("Information"),
+        tags$p(paste("Address:", address)),
+        tags$p(paste("Description:", description)),
+        tags$p(paste("Business Hours:", business_hours)),
+        tags$p(paste("Types:", types))
+      )
+    })
+  })
+  
+  
+  
   #实现电车路线
   data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
-  
   # 计算独特的线路数量
   num_unique_routes <- length(unique(data_sf$name))
-  
   # 生成颜色映射
   colors <- colorFactor(rainbow(num_unique_routes), data_sf$name)
-  
   tram_routes_visible <- reactiveVal(FALSE)  # Assuming tram routes are hidden by default
-  
   # 为每条路线生成一个颜色
   colors <- colorFactor(rainbow(length(unique(data_sf$name))), data_sf$name)
-  
   observeEvent(input$toggle_tram_routes, {
     tram_routes_visible(!tram_routes_visible())  # 切换值
     proxy <- leafletProxy("map")
