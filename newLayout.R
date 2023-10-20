@@ -9,7 +9,7 @@
 # Project introduction: Assignment3
 
 # ------------------------------ Import Library ------------------------------ #
-library(shiny)
+library("shiny")
 library(shinydashboard)
 library(bslib)
 library(leaflet) # Map
@@ -48,12 +48,6 @@ coworking_data <- read.csv("new_data/coworking-spaces.csv")
 theme <- "lumen"
 light <- bs_theme(bootswatch = theme)
 dark <- bs_theme(bootswatch = theme, bg = "#212121", fg = "white")
-
-first_50_landmarks <- head(landmarks_data, 50)
-first_50_bars <- head(bar_filtered_data, 50)
-first_500_hotels <- head(hotel_data, 500)
-first_50_dwellings <- head(dwelling_data, 50)
-first_50_coworkings <- head(coworking_data, 50)
 
 # ------------------------------ Weather Extractor --------------------------- #
 # Fetch weather data from the API
@@ -100,7 +94,7 @@ userGuide <- tabPanel(
 
 tableau1 <- tableauPublicViz(
   id = "tableau1",
-  url = "https://public.tableau.com/views/accidents_analysis/pie?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
+  url = "https://public.tableau.com/views/accidents_analysis/pieChart?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
   height = "500px"
 )
 tableau2 <- tableauPublicViz(
@@ -211,14 +205,14 @@ ui <- navbarPage(
                                                      style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: green; color: white; width: 14vh;"),
                                         
                                         fluidRow(
-                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworkings", unique(first_50_coworkings$Organisation))), class = "select"),
-                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_500_hotels$Title)))), class = "select"),
-                                          # column(4, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
+                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = unique(coworking_data$Organisation)), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = unique(hotel_data$Title))), class = "select"),
+                                        # column(4, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                         fluidRow(
                                           # column(6, selectInput("choose_landmarks", "Find Landmarks", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
-                                          column(6, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),
-                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type)))), class = "select")
-                                        ),
+                                          column(6, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
+                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = unique(dwelling_data$`Dwelling type`))), class = "select")
+                               ),
                                
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
@@ -240,7 +234,7 @@ ui <- navbarPage(
                             tags$i(id="toggle-icon2", class="fas fa-chevron-down", style="float: right;")
                     ),
                     tags$div(id="content-area2",
-                             tabPanel("More Information", "content",
+                             tabPanel("More Information",  uiOutput("more_information_content"),
                                       style = "margin-left: 10px; margin-top: 10px; margin-bottom: 10px;"),
                     )
            ),
@@ -266,7 +260,7 @@ ui <- navbarPage(
              column(width = 6, tableau1, class = "custom-plot"),
              column(width = 6, tableau2, class = "custom-plot"),
            )
-           ),
+  ),
   tabPanel("User Guide", userGuide),
 )
 
@@ -278,8 +272,6 @@ server <- function(input, output, session) {
   bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'white')
   dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'green', iconColor = 'white')
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
-  hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
-  landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
   
   # Melbourne coordinates
   lat <- -37.8136
@@ -291,7 +283,13 @@ server <- function(input, output, session) {
   weather_data <- api_data$main
   weather_description <- api_data$weather$description[1]
   weather_icon_id <- api_data$weather$icon[1]
-
+  
+  first_50_landmarks <- head(landmarks_data, 50)
+  first_50_bars <- head(bar_filtered_data, 50)
+  first_500_hotels <- head(hotel_data, 500)
+  first_50_dwellings <- head(dwelling_data, 50)
+  first_50_coworkings <- head(coworking_data, 50)
+  
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
     session$setCurrentTheme(light)
@@ -308,67 +306,20 @@ server <- function(input, output, session) {
     
     # 根据背景亮度选择前景颜色
     new_fg <- ifelse(slider_value > 0.5, "white", "black")
+    
     new_theme <- bs_theme(bootswatch = "lumen", bg = new_bg, fg = new_fg)
     session$setCurrentTheme(new_theme)
   })
   
-  
-  # Selector
-  observeEvent(input$choose_dwellings, {
-    selected_data <- if(input$choose_dwellings != "All Dwellings") {
-      subset(first_50_dwellings, Dwelling.type == input$choose_dwellings)
-    } else {
-      first_50_dwellings  # if "All"，return all
-    }
-    # upload
-    leafletProxy("map") %>%
-      clearMarkers() %>%  # clear
-      addAwesomeMarkers(data = selected_data, icon = dwelling_icon, lng = ~Longitude, lat = ~Latitude)
-  })
-  
-  observeEvent(input$choose_hotels, {
-    if(input$choose_hotels != "All Hotels") {
-      selected_data <- subset(first_500_hotels, Title == input$choose_hotels)
-    } else {
-      selected_data <- first_500_hotels
-    }
-    
-    leafletProxy("map") %>%
-      clearMarkers() %>%
-      addAwesomeMarkers(data = selected_data, icon = hotel_icon, lng = ~longitude, lat = ~latitude)
-  })
-  
-  # column(6, selectInput("choose_bars", "Find Bars", choices = c("All", unique(first_50_bars$Trading_name))), class = "select"),
-  observeEvent(input$choose_bars, {
-    if(input$choose_bars != "All Bars") {
-      selected_data <- subset(first_50_bars, Trading_name == input$choose_bars)
-    } else {
-      selected_data <- first_50_bars
-    }
-    
-    leafletProxy("map") %>%
-      clearMarkers() %>%
-      addAwesomeMarkers(data = selected_data, icon = bar_icon, lng = ~Longitude, lat = ~Latitude)
-  })
-  
-  observeEvent(input$choose_coworking, {
-    selected_data <- if(input$choose_coworking != "All Coworkings") {
-      subset(first_50_coworkings, Organisation == input$choose_coworking)
-    } else {
-      selected_data <- first_50_coworkings
-    }
-    leafletProxy("map") %>%
-      clearMarkers() %>%
-      addAwesomeMarkers(data = selected_data, icon = coworking_icon, lng = ~longitude, lat = ~latitude)
-  })
   
   # display landmarks
   landmarks_visible <- reactiveVal(FALSE)
   observeEvent(input$show_landmarks, {
     landmarks_visible(!landmarks_visible())  # Toggle the value
     if (landmarks_visible()) {
+      landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
       proxy <- leafletProxy("map")
-      # proxy %>% clearMarkers()  # Clear old markers
+      proxy %>% clearMarkers()  # Clear old markers
       for (i in 1:nrow(first_50_landmarks)) {
         proxy <- addAwesomeMarkers(
           proxy,
@@ -416,6 +367,7 @@ server <- function(input, output, session) {
     hotels_visible(!hotels_visible())  # Toggle the value
     proxy <- leafletProxy("map")
     if (hotels_visible()) {
+      hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
       for (i in 1:nrow(first_500_hotels)) {
         proxy <- addAwesomeMarkers(
           proxy,
@@ -479,18 +431,11 @@ server <- function(input, output, session) {
     }
   })
   
-  
   ## Map
   output$map <- renderLeaflet({
     # Create Leaflet Map
     m <- leaflet() %>%
       addTiles() %>%
-      clearMarkers() %>%
-      addAwesomeMarkers(data = first_500_hotels, icon = hotel_icon, lng = ~longitude, lat = ~latitude) %>%
-      addAwesomeMarkers(data = first_50_bars, icon = bar_icon, lng = ~Longitude, lat = ~Latitude) %>%
-      addAwesomeMarkers(data = first_50_coworkings, icon = coworking_icon, lng = ~longitude, lat = ~latitude) %>%
-      addAwesomeMarkers(data = first_50_dwellings, icon = dwelling_icon, lng = ~Longitude, lat = ~Latitude) %>%
-      addAwesomeMarkers(data = first_50_landmarks, icon = landmark_icon, lng = ~longitude, lat = ~latitude) %>%
       # Mini Map
       addMiniMap(
         tiles = providers$CartoDB.Positron,
@@ -513,6 +458,36 @@ server <- function(input, output, session) {
     #     )
     #   }
     # }
+    
+    # 创建用于显示 Business address 的响应性值
+    business_address_info <- reactiveVal("")
+    
+    # 监听 bar 图标的点击事件
+    observeEvent(input$map_marker_click, {
+      event <- input$map_marker_click
+      if (is.null(event)) {
+        return()  # 如果没有点击事件，不执行任何操作
+      }
+      
+      # 获取点击的图标的 ID，例如 "bar_1"
+      marker_id <- event$id
+      
+      # 从 ID 中提取索引，以查找对应的 Business address
+      index <- as.numeric(gsub("bar_", "", marker_id))
+      
+      if (!is.na(index) && index >= 1 && index <= nrow(first_50_bars)) {
+        # 获取对应 bar 的 Business address
+        business_address <- first_50_bars[index, "Business_address"]
+        
+        # 更新响应性值，以便在 UI 中显示 Business address
+        business_address_info(business_address)
+      }
+    })
+    
+    # 在 "More Information" tabPanel 中显示 Business address
+    output$more_information_content <- renderText({
+      business_address_info()
+    })
     
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
@@ -544,94 +519,20 @@ server <- function(input, output, session) {
     })
   })
   
-  # Display information penal
-  observe({
-    click <- input$map_marker_click
-    if (is.null(click)) return()
-    
-    clicked_lat <- click$lat
-    clicked_lng <- click$lng
-    tolerance <- 0.0001  # A small number to account for tiny variations in lat/lng values
-    
-    # Check for landmarks
-    if (any(abs(first_50_landmarks$latitude - clicked_lat) < tolerance & 
-            abs(first_50_landmarks$longitude - clicked_lng) < tolerance)) {
-      dataset <- "landmark"
-      data <- first_50_landmarks
-      idx <- which.min(sqrt((first_50_landmarks$latitude - clicked_lat)^2 + 
-                              (first_50_landmarks$longitude - clicked_lng)^2))
-    } 
-    # Check for bars
-    else if (any(abs(first_50_bars$Latitude - clicked_lat) < tolerance & 
-                 abs(first_50_bars$Longitude - clicked_lng) < tolerance)) {
-      dataset <- "bar"
-      data <- first_50_bars
-      idx <- which.min(sqrt((first_50_bars$Latitude - clicked_lat)^2 + 
-                              (first_50_bars$Longitude - clicked_lng)^2))
-    }
-    # Check for hotels
-    else if (any(abs(first_500_hotels$latitude - clicked_lat) < tolerance & 
-                 abs(first_500_hotels$longitude - clicked_lng) < tolerance)) {
-      dataset <- "hotel"
-      data <- first_500_hotels
-      idx <- which.min(sqrt((first_500_hotels$latitude - clicked_lat)^2 + 
-                              (first_500_hotels$longitude - clicked_lng)^2))
-    }
-    # Check for dwellings
-    else if (any(abs(first_50_dwellings$Latitude - clicked_lat) < tolerance & 
-                 abs(first_50_dwellings$Longitude - clicked_lng) < tolerance)) {
-      dataset <- "dwelling"
-      data <- first_50_dwellings
-      idx <- which.min(sqrt((first_50_dwellings$Latitude - clicked_lat)^2 + 
-                              (first_50_dwellings$Longitude - clicked_lng)^2))
-    }
-    # Check for coworking spaces
-    else if (any(abs(first_50_coworkings$latitude - clicked_lat) < tolerance & 
-                 abs(first_50_coworkings$longitude - clicked_lng) < tolerance)) {
-      dataset <- "coworking"
-      data <- first_50_coworkings
-      idx <- which.min(sqrt((first_50_coworkings$latitude - clicked_lat)^2 + 
-                              (first_50_coworkings$longitude - clicked_lng)^2))
-    }
-    else {
-      return()
-    }
-    
-    # Extract and format the information
-    address <- switch(dataset,
-                      landmark = data$Title[idx],
-                      bar = data$Business_address[idx],
-                      hotel = data$Location[idx],
-                      dwelling = data$Building_address[idx],
-                      coworking = data$Address[idx]
-    )
-    description <- ifelse(is.na(data$Description[idx]), "None", data$Description[idx]) # Assuming 'Description' is the column name
-    business_hours <- "7:00am to 18:00pm for all days from Monday to Friday"
-    types <- dataset
-    
-    # Populate the #draggable2 floating window
-    output$draggable2_content <- renderUI({
-      tagList(
-        tags$h4("Information"),
-        tags$p(paste("Address:", address)),
-        tags$p(paste("Description:", description)),
-        tags$p(paste("Business Hours:", business_hours)),
-        tags$p(paste("Types:", types))
-      )
-    })
-  })
-  
-  
-  
   #实现电车路线
   data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
+  
   # 计算独特的线路数量
   num_unique_routes <- length(unique(data_sf$name))
+  
   # 生成颜色映射
   colors <- colorFactor(rainbow(num_unique_routes), data_sf$name)
+  
   tram_routes_visible <- reactiveVal(FALSE)  # Assuming tram routes are hidden by default
+  
   # 为每条路线生成一个颜色
   colors <- colorFactor(rainbow(length(unique(data_sf$name))), data_sf$name)
+  
   observeEvent(input$toggle_tram_routes, {
     tram_routes_visible(!tram_routes_visible())  # 切换值
     proxy <- leafletProxy("map")
