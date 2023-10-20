@@ -22,7 +22,6 @@ library(sf)
 source('tableau-in-shiny-v1.0.R')
 
 # ---------------------------- Variable Definition --------------------------- #
-## Bar display
 # 读取CSV数据集
 bar_data <- read.csv("new_data/bars-and-pubs-with-patron-capacity.csv")
 # 过滤数据集
@@ -286,7 +285,7 @@ server <- function(input, output, session) {
   
   first_50_landmarks <- head(landmarks_data, 50)
   first_50_bars <- head(bar_filtered_data, 50)
-  first_500_hotels <- head(hotel_data, 500)
+  first_500_hotels <- head(hotel_data, 100)
   first_50_dwellings <- head(dwelling_data, 50)
   first_50_coworkings <- head(coworking_data, 50)
   
@@ -397,7 +396,7 @@ server <- function(input, output, session) {
           lng = first_50_dwellings[i, "Longitude"],
           lat = first_50_dwellings[i, "Latitude"],
           icon = dwelling_icon,
-          popup = first_50_dwellings[i, "Building_address"],
+          popup = first_50_dwellings[i, "Address"],
           layerId = paste0("dwelling_", i)
         )
       }
@@ -444,50 +443,56 @@ server <- function(input, output, session) {
       setView(lng = 144.9631, lat = -37.8136, zoom = 14) %>%
       addControl(html = "<button id='jumpButton'>Jump to Melbourne</button>", position = "bottomleft")
     
-    # if (input$show_bar_icons) {
-    #   # Add bar icons to the map if the checkbox is checked
-    #   for (i in 1:nrow(bar_filtered_data)) {
-    #     bar_icon <- makeIcon(iconUrl = "bar_icon.png", iconWidth = 30, iconHeight = 30)
-    #     m <- addMarkers(
-    #       m,
-    #       lng = bar_filtered_data[i, "Longitude"],
-    #       lat = bar_filtered_data[i, "Latitude"],
-    #       icon = bar_icon,
-    #       popup = bar_filtered_data[i, "Business_address"],
-    #       layerId = paste0("bar_", i)
-    #     )
-    #   }
-    # }
     
     # 创建用于显示 Business address 的响应性值
-    business_address_info <- reactiveVal("")
+    address_info <- reactiveVal("")
     
-    # 监听 bar 图标的点击事件
+    # 监听图标的点击事件
     observeEvent(input$map_marker_click, {
       event <- input$map_marker_click
       if (is.null(event)) {
         return()  # 如果没有点击事件，不执行任何操作
       }
       
-      # 获取点击的图标的 ID，例如 "bar_1"
+      # 获取点击的图标的 ID
       marker_id <- event$id
+      marker_type <- gsub("_[0-9]+$", "", marker_id)  # Extracting the marker type
+      index <- as.numeric(gsub("^[a-z_]+_", "", marker_id))  # Extracting the index
       
-      # 从 ID 中提取索引，以查找对应的 Business address
-      index <- as.numeric(gsub("bar_", "", marker_id))
-      
-      if (!is.na(index) && index >= 1 && index <= nrow(first_50_bars)) {
-        # 获取对应 bar 的 Business address
-        business_address <- first_50_bars[index, "Business_address"]
-        
-        # 更新响应性值，以便在 UI 中显示 Business address
-        business_address_info(business_address)
+      # 根据图标类型获取对应的地址
+      if (marker_type == "bar") {
+        if (!is.na(index) && index >= 1 && index <= nrow(bar_filtered_data)) {
+          address <- bar_filtered_data[index, "Business_address"]
+        }
+      } else if (marker_type == "coworking") {
+        if (!is.na(index) && index >= 1 && index <= nrow(coworking_data)) {
+          address <- coworking_data[index, "Address"]
+        }
+      } else if (marker_type == "hotel") {
+        if (!is.na(index) && index >= 1 && index <= nrow(hotel_data)) {
+          address <- hotel_data[index, "Location"]
+        }
+      } else if (marker_type == "landmark") {
+        if (!is.na(index) && index >= 1 && index <= nrow(landmarks_data)) {
+          address <- landmarks_data[index, "Title"]
+        }
+      } else if (marker_type == "dwelling") {
+        if (!is.na(index) && index >= 1 && index <= nrow(dwelling_data)) {
+          address <- dwelling_data[index, "Address"]
+        }
       }
+      
+      # 更新响应性值，以便在 UI 中显示地址
+      address_info(address)
     })
     
-    # 在 "More Information" tabPanel 中显示 Business address
+    # 在 "More Information" tabPanel 中显示地址
     output$more_information_content <- renderText({
-      business_address_info()
+      address_info()
     })
+    
+    
+    
     
     # Weather info as HTML
     weather_icon_url <- paste0("http://openweathermap.org/img/wn/", weather_icon_id, ".png")
