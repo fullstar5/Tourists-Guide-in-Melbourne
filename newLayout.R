@@ -90,6 +90,17 @@ userGuide <- tabPanel(
                     "Data Source Describe")
   )
 )
+
+tableau1 <- tableauPublicViz(
+  id = "tableau1",
+  url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
+  height = "500px"
+)
+tableau2 <- tableauPublicViz(
+  id = "tableau1",
+  url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
+  height = "500px"
+)
 # ----------------------------------- UI ------------------------------------- #
 ## UI
 ui <- navbarPage(
@@ -102,7 +113,7 @@ ui <- navbarPage(
     tags$link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"),  # 添加Font Awesome
     
     tags$style("#draggable {
-                  width: 45vh;
+                  width: 50vh;
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
@@ -110,24 +121,26 @@ ui <- navbarPage(
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
+                  padding: 1vh;
                   }
                 
                 #draggable2 {
-                  width: 45vh;
+                  width: 50vh;
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 45vh;
+                  top: 48vh;
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
+                  padding: 1vh;
                 }
 
                 #draggable h4 {
                   color: white;
                   background-color: black;
                   height: 4vh;
-                  padding: 0.5vh;
+                  padding: 1vh;
                 }
                 
                #draggable2 h4 {
@@ -140,8 +153,9 @@ ui <- navbarPage(
                .custom-slider-container {
                   color: black;
                   display: flex;
-                  margin-left: 15px;
+                  margin-left: 5px;
                   align-items: center;
+                  padding: 1vh;
                 }
               .custom-slider-labels {
                   color: black;
@@ -176,17 +190,17 @@ ui <- navbarPage(
                              tabsetPanel(
                                tabPanel("Map Setting",
                                         actionButton("jump_to_melbourne", "Back to Melbourne Area",
-                                                     style = "margin-left: 10px; margin-top: 10px; background-color: #F9F200; color: black;"), br(),
+                                                     style = "margin-top: 1.5vh; background-color: #F9F200; color: black;"), br(),
                                         actionButton("show_coworkings", "Coworking",
-                                                     style = "margin-left: 10px; margin-top: 10px; background-color: purple; color: white; width: 14vh;"),
+                                                     style = "margin-top: 1.5vh; background-color: purple; color: white; width: 15vh;"),
                                         actionButton("show_hotels", "Hotel",
-                                                     style = "margin-top: 10px; background-color: #FFD740; color: #333333; width: 14vh;"),
+                                                     style = "margin-left: 1vh; margin-top: 1.5vh; background-color: #FFD740; color: #333333; width: 15vh;"),
                                         actionButton("show_bars", "Bar",
-                                                     style = "margin-top: 10px; background-color: red; color: white; width: 14vh;"), 
+                                                     style = "margin-left: 1vh; margin-top: 1.5vh; background-color: red; color: white; width: 15vh;"), 
                                         actionButton("show_landmarks", "Landmark",
-                                                     style = "margin-left: 10px; margin-top: 10px; margin-bottom: 10px; background-color: #0163FA; color: white; width: 14vh;"), 
+                                                     style = "margin-top: 1.5vh; margin-bottom: 1.5vh; background-color: #0163FA; color: white; width: 15vh;"), 
                                         actionButton("show_dwellings", "Dwelling",
-                                                     style = "margin-top: 10px;  margin-bottom: 10px; background-color: #4CAF50; color: white; width: 14vh;"), 
+                                                     style = "margin-left: 1vh; margin-top: 1.5vh;  margin-bottom: 1.5vh; background-color: #4CAF50; color: white; width: 15vh;"), 
                                         ),
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
@@ -197,9 +211,9 @@ ui <- navbarPage(
                                             span("Dark")
                                         ),
                                         actionButton("light_mode", " Light Model", icon("sun"), 
-                                                     style = "margin-left: 20px; margin-top: 10px; margin-bottom: 10px; color: black; background-color: #E8E8E8; margin-top: 10px;"),
+                                                     style = "margin-left: 5px; margin-top: 10px; margin-bottom: 10px; color: black; background-color: #E8E8E8; margin-top: 10px;"),
                                         actionButton("dark_mode", " Dark Model", icon("moon"), 
-                                                     style = "margin-left: 100px; margin-top: 10px; margin-bottom: 10px; color: white; background-color: #212121; margin-top: 10px;"),),
+                                                     style = "margin-left: 115px; margin-top: 10px; margin-bottom: 10px; color: white; background-color: #212121; margin-top: 10px;"),),
                              ),
                     )
            ),
@@ -214,13 +228,18 @@ ui <- navbarPage(
            ),
   ),
   header = setUpTableauInShiny(),
-  tabPanel("Plot2", 
-           "Plot2",
-           tableauPublicViz(
-             id = "tableau1",
-             url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
-             height = "500px"
+  tabPanel("Plot2",
+           br(),
+           fluidRow(
+             column(width = 4, box(title = "Card 1", "Content for card 1")),
+             column(width = 4, box(title = "Card 2", "Content for card 1")),
+             column(width = 4, box(title = "Card 3", "Content for card 1")),
            ),
+           br(),
+           fluidRow(
+             column(width = 6, tableau1),
+             column(width = 6, tableau2),
+           )
            ),
   tabPanel("User Guide", userGuide),
 )
