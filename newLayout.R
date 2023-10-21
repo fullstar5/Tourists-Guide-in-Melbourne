@@ -34,6 +34,16 @@ bar_filtered_data <- bar_data %>%
            Census_year < 2023 &               # Census year 小于 2023
            grepl("bar", Trading_name, ignore.case = TRUE))  # Trading name 包含 "bar"（不区分大小写）
 
+# ---------------------------- restaurant_data --------------------------- #
+restaurant_data <- read.csv("new_data/cafes-and-restaurants-with-seating-capacity.csv")
+
+# 过滤数据集
+restaurant_filtered_data <- restaurant_data %>%
+  filter(!is.na(Trading_name) &          # Business address 不为空
+           !is.na(Longitude) &                   # Longitude 不为空
+           !is.na(Latitude)                     # Latitude 不为空
+  )
+
 ## Land Marks
 landmarks_data <- read.csv("new_data/melbourne_city_landmarks(new).csv")
 
@@ -44,6 +54,7 @@ coworking_data <- read.csv("new_data/coworking-spaces.csv")
 
 first_50_landmarks <- head(landmarks_data, 50)
 first_50_bars <- head(bar_filtered_data, 50)
+first_50_restaurants <- head(restaurant_filtered_data, 500)
 first_500_hotels <- head(hotel_data, 100)
 first_50_dwellings <- head(dwelling_data, 50)
 first_50_coworkings <- head(coworking_data, 50)
@@ -215,7 +226,7 @@ ui <- navbarPage(
                                         actionButton("show_coworkings", "Coworking",
                                                      style = "margin-top: 1vh; background-color: purple; color: white; width: 16vh;"),
                                         actionButton("show_hotels", "Hotel",
-                                                     style = "margin-top: 1vh; background-color: #FFD740; color: #333333; width: 16vh;"),
+                                                     style = "margin-top: 1vh; background-color: cadetblue; color: #333333; width: 16vh;"),
                                         actionButton("show_bars", "Bar",
                                                      style = "margin-top: 1vh; background-color: red; color: white; width: 16vh;"), 
                                         actionButton("show_landmarks", "Landmark",
@@ -224,6 +235,8 @@ ui <- navbarPage(
                                                      style = "margin-top: 1vh;  background-color: #4CAF50; color: white; width: 16vh;"),
                                         actionButton("toggle_tram_routes", "Tram",
                                                      style = "margin-top: 1vh; background-color: green; color: white; width: 16vh;"),
+                                        actionButton("show_restaurant", "Restaurant",
+                                                     style = "margin-top: 1vh; background-color: orange; color: white; width: 16vh;"), 
                                         br(),
                                         fluidRow(
                                           column(4, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworking", unique(first_50_coworkings$Organisation))), class = "select"),
@@ -231,7 +244,8 @@ ui <- navbarPage(
                                           column(4, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),),
                                         fluidRow(
                                           column(8, selectInput("choose_landmark", "Find Landmarks", choices = c("All Landmarks", unique(first_50_landmarks$Title))), class = "select"),
-                                          column(4, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type))), class = "select"),)
+                                          column(4, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type))), class = "select"),
+                                          column(4, selectInput("choose_restaurants", "Find Restaurants", choices = c("All Restaurants", unique(first_50_restaurants$Trading_name))), class = "select"),)
                                ),
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
@@ -243,9 +257,9 @@ ui <- navbarPage(
                                         ),
                                         fluidRow(
                                           column(6, actionButton("light_mode", " Light Model", icon("sun"), 
-                                                       style = "color: black; background-color: #E8E8E8; margin-top: 1vh;")),
+                                                                 style = "color: black; background-color: #E8E8E8; margin-top: 1vh;")),
                                           column(6, actionButton("dark_mode", " Dark Model", icon("moon"), 
-                                                       style = "color: white; background-color: #212121; margin-top: 1vh;")),
+                                                                 style = "color: white; background-color: #212121; margin-top: 1vh;")),
                                         )
                                         ,
                                ),
@@ -283,8 +297,8 @@ ui <- navbarPage(
              column(width = 4, box(title = "Card 3", "Content for card 1"), class = "custom-box"),
            ),
            fluidRow(class = "tableau-plot",
-             column(width = 6, tableau1, class = "custom-plot"),
-             column(width = 6, tableau2, class = "custom-plot"),
+                    column(width = 6, tableau1, class = "custom-plot"),
+                    column(width = 6, tableau2, class = "custom-plot"),
            )
   ),
   tabPanel("User Guide", userGuide),
@@ -296,10 +310,11 @@ server <- function(input, output, session) {
   
   # Define Awesome Icons
   bar_icon <- makeAwesomeIcon(icon = 'glass', markerColor = 'red', iconColor = 'white')
+  restaurant_icon <- makeAwesomeIcon(icon = 'cutlery', markerColor = 'orange', iconColor = 'white')
   dwelling_icon <- makeAwesomeIcon(icon = 'home', markerColor = 'green', iconColor = 'white')
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
   landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
-  hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
+  hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'cadetblue', iconColor = 'white')
   icon_html <- as.character(tags$a(id="navIcon", href="#", class="fas fa-map-signs"))
   
   # Melbourne coordinates
@@ -312,7 +327,7 @@ server <- function(input, output, session) {
   weather_data <- api_data$main
   weather_description <- api_data$weather$description[1]
   weather_icon_id <- api_data$weather$icon[1]
-
+  
   
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   # dynamic theme
@@ -565,6 +580,64 @@ server <- function(input, output, session) {
     }
   })
   
+  
+  ### Restaurants ---------------------------------------------------------------
+  restaurants_visible <- reactiveVal(FALSE)
+  
+  observeEvent(input$show_restaurant, {
+    proxy <- leafletProxy("map")
+    if (restaurants_visible()) {
+      for (i in 1:nrow(first_50_restaurants)) {
+        proxy <- removeMarker(proxy, layerId = paste0("restaurant_", i))
+      }
+      restaurants_visible(FALSE)
+    } else {  
+      for (i in 1:nrow(first_50_restaurants)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_restaurants[i, "Longitude"],
+          lat = first_50_restaurants[i, "Latitude"],
+          icon = restaurant_icon,
+          popup = first_50_restaurants[i, "Business_address"],
+          layerId = paste0("restaurant_", i)
+        )
+      }
+      restaurants_visible(TRUE)
+    }
+  })
+  
+  observe({
+    selected_restaurant <- input$choose_restaurants
+    proxy <- leafletProxy("map")
+    for (i in 1:nrow(first_50_restaurants)) {
+      proxy <- removeMarker(proxy, layerId = paste0("restaurant_", i))
+    }
+    if (selected_restaurant == "All Restaurants") {
+      for (i in 1:nrow(first_50_restaurants)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_restaurants[i, "Longitude"],
+          lat = first_50_restaurants[i, "Latitude"],
+          icon = restaurant_icon,
+          popup = first_50_restaurants[i, "Business_address"],
+          layerId = paste0("restaurant_", i)
+        )
+      }
+      restaurants_visible(TRUE)
+    } else {
+      selected_row <- first_50_restaurants[first_50_restaurants$Trading_name == selected_restaurant, ]
+      proxy <- addAwesomeMarkers(
+        proxy,
+        lng = selected_row$Longitude,
+        lat = selected_row$Latitude,
+        icon = restaurant_icon,
+        popup = selected_row$Business_address,
+        layerId = paste0("restaurant_", which(first_50_restaurants$Trading_name == selected_restaurant))
+      )
+      restaurants_visible(FALSE) 
+    }
+  })
+  
   ### dwellings ---------------------------------------------------------------
   dwellings_visible <- reactiveVal(FALSE)
   
@@ -763,6 +836,7 @@ server <- function(input, output, session) {
       if (marker_type == "bar") {
         if (!is.na(index) && index >= 1 && index <= nrow(bar_filtered_data)) {
           address <- bar_filtered_data[index, "Business_address"]
+          trading_name <- bar_filtered_data[index, "Trading_name"]
         }
       } else if (marker_type == "coworking") {
         if (!is.na(index) && index >= 1 && index <= nrow(coworking_data)) {
@@ -775,10 +849,16 @@ server <- function(input, output, session) {
       } else if (marker_type == "landmark") {
         if (!is.na(index) && index >= 1 && index <= nrow(landmarks_data)) {
           address <- landmarks_data[index, "Title"]
+          trading_name <- trimws(unlist(strsplit(landmarks_data[index, "Title"], ","))[1])
         }
       } else if (marker_type == "dwelling") {
         if (!is.na(index) && index >= 1 && index <= nrow(dwelling_data)) {
           address <- dwelling_data[index, "Address"]
+        }
+      } else if (marker_type == "restaurant") {
+        if (!is.na(index) && index >= 1 && index <= nrow(restaurant_filtered_data)) {
+          address <- restaurant_filtered_data[index, "Business_address"]
+          trading_name <- restaurant_filtered_data[index, "Trading_name"]
         }
       }
       # Construct business hours information
@@ -787,7 +867,13 @@ server <- function(input, output, session) {
       business_hours_info <- paste(days, hours, sep=": ", collapse="<br>")
       
       # Append business hours to the fetched address
-      full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
+      if (marker_type == "bar" || marker_type == "restaurant" || marker_type == "landmark") {
+        full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Location Name:</strong><br>", trading_name, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
+      }  else if(marker_type == "dwelling") {
+        full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Address:</strong><br>", address)
+      } else {
+        full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
+      }
       # 更新响应性值，以便在 UI 中显示地址
       address_info(full_info)
     })
@@ -827,7 +913,7 @@ server <- function(input, output, session) {
     })
   })
   
- #Tram Line
+  #Tram Line
   data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
   
   # Calculate unique tram line 
