@@ -41,6 +41,12 @@ hotel_data <- read.csv("new_data/melbourne_and_metropolitan_hotels_pubs_and_publ
 dwelling_data <- read.csv("new_data/residential-dwellings.csv")
 coworking_data <- read.csv("new_data/coworking-spaces.csv")
 
+first_50_landmarks <- head(landmarks_data, 50)
+first_50_bars <- head(bar_filtered_data, 50)
+first_500_hotels <- head(hotel_data, 100)
+first_50_dwellings <- head(dwelling_data, 50)
+first_50_coworkings <- head(coworking_data, 50)
+
 ## Page layout Settings
 # Bootstrap Theme and dark mode (https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic)
 # Other theme: lumen,  Demo: https://testing-apps.shinyapps.io/themer-demo/
@@ -117,7 +123,7 @@ ui <- navbarPage(
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 10vh;
+                  top: 8vh;
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
@@ -129,7 +135,7 @@ ui <- navbarPage(
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 62vh;
+                  top: 60vh;
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
@@ -204,13 +210,13 @@ ui <- navbarPage(
                                                      style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: green; color: white; width: 14vh;"),
                                         
                                         fluidRow(
-                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = unique(coworking_data$Organisation)), class = "select"),
-                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = unique(hotel_data$Title))), class = "select"),
+                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworkings", unique(first_50_coworkings$Organisation))), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_500_hotels$Title)))), class = "select"),
                                         # column(4, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                         fluidRow(
                                           # column(6, selectInput("choose_landmarks", "Find Landmarks", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
-                                          column(6, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
-                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = unique(dwelling_data$`Dwelling type`))), class = "select")
+                                          column(6, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),
+                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type)))), class = "select")
                                ),
                                
                                tabPanel("Page Setting", 
@@ -284,12 +290,7 @@ server <- function(input, output, session) {
   weather_data <- api_data$main
   weather_description <- api_data$weather$description[1]
   weather_icon_id <- api_data$weather$icon[1]
-  
-  first_50_landmarks <- head(landmarks_data, 50)
-  first_50_bars <- head(bar_filtered_data, 50)
-  first_500_hotels <- head(hotel_data, 100)
-  first_50_dwellings <- head(dwelling_data, 50)
-  first_50_coworkings <- head(coworking_data, 50)
+
   
   #  https://rstudio.github.io/bslib/articles/theming/index.html?q=dark%20mode#dynamic
   observeEvent(input$light_mode, {
@@ -313,6 +314,271 @@ server <- function(input, output, session) {
   })
   
   
+  # Selector
+  ### coworking ---------------------------------------------------------------
+  # 用于跟踪按钮状态
+  coworking_visible <- reactiveVal(FALSE)
+  
+  observeEvent(input$show_coworkings, {
+    proxy <- leafletProxy("map")
+    
+    # 如果数据当前是可见的，则隐藏
+    if (coworking_visible()) {
+      for (i in 1:nrow(first_50_coworkings)) {
+        proxy <- removeMarker(proxy, layerId = paste0("coworking_", i))
+      }
+      coworking_visible(FALSE)
+    } else {  # 如果数据当前是隐藏的，则显示
+      for (i in 1:nrow(first_50_coworkings)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_coworkings[i, "longitude"],
+          lat = first_50_coworkings[i, "latitude"],
+          icon = coworking_icon,
+          popup = first_50_coworkings[i, "Address"],
+          layerId = paste0("coworking_", i)
+        )
+      }
+      coworking_visible(TRUE)
+    }
+  })
+  
+  observe({
+    selected_coworking <- input$choose_coworking
+    proxy <- leafletProxy("map")
+    
+    # 先移除所有标记
+    for (i in 1:nrow(first_50_coworkings)) {
+      proxy <- removeMarker(proxy, layerId = paste0("coworking_", i))
+    }
+    
+    if (selected_coworking == "All Coworkings") {
+      # 添加所有 coworking 标记
+      for (i in 1:nrow(first_50_coworkings)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_coworkings[i, "longitude"],
+          lat = first_50_coworkings[i, "latitude"],
+          icon = coworking_icon,
+          popup = first_50_coworkings[i, "Address"],
+          layerId = paste0("coworking_", i)
+        )
+      }
+      coworking_visible(TRUE)
+    } else {
+      # 添加特定的 coworking 标记
+      selected_row <- first_50_coworkings[first_50_coworkings$Organisation == selected_coworking, ]
+      proxy <- addAwesomeMarkers(
+        proxy,
+        lng = selected_row$longitude,
+        lat = selected_row$latitude,
+        icon = coworking_icon,
+        popup = selected_row$Address,
+        layerId = paste0("coworking_", which(first_50_coworkings$Organisation == selected_coworking))
+      )
+      coworking_visible(FALSE)  # 设置为隐藏，因为我们仅显示了一个 coworking
+    }
+  })
+  
+  ### hotels ---------------------------------------------------------------
+  # 用于跟踪按钮状态
+  hotels_visible <- reactiveVal(FALSE)
+  observeEvent(input$show_hotels, {
+    proxy <- leafletProxy("map")
+    
+    # 如果数据当前是可见的，则隐藏
+    if (hotels_visible()) {
+      for (i in 1:nrow(first_500_hotels)) {
+        proxy <- removeMarker(proxy, layerId = paste0("hotel_", i))
+      }
+      hotels_visible(FALSE)
+    } else {  # 如果数据当前是隐藏的，则显示
+      for (i in 1:nrow(first_500_hotels)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_500_hotels[i, "longitude"],
+          lat = first_500_hotels[i, "latitude"],
+          icon = hotel_icon,
+          popup = first_500_hotels[i, "Location"],
+          layerId = paste0("hotel_", i)
+        )
+      }
+      hotels_visible(TRUE)
+    }
+  })
+  
+  observe({
+    selected_hotel <- input$choose_hotels
+    proxy <- leafletProxy("map")
+    
+    # 先移除所有标记
+    for (i in 1:nrow(first_500_hotels)) {
+      proxy <- removeMarker(proxy, layerId = paste0("hotel_", i))
+    }
+    
+    if (selected_hotel == "All Hotels") {
+      # 添加所有 hotel 标记
+      for (i in 1:nrow(first_500_hotels)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_500_hotels[i, "longitude"],
+          lat = first_500_hotels[i, "latitude"],
+          icon = hotel_icon,
+          popup = first_500_hotels[i, "Location"],
+          layerId = paste0("hotel_", i)
+        )
+      }
+      hotels_visible(TRUE)
+    } else {
+      # 添加特定的 hotel 标记
+      selected_row <- first_500_hotels[first_500_hotels$Title == selected_hotel, ]
+      proxy <- addAwesomeMarkers(
+        proxy,
+        lng = selected_row$longitude,
+        lat = selected_row$latitude,
+        icon = hotel_icon,
+        popup = selected_row$Location,
+        layerId = paste0("hotel_", which(first_500_hotels$Title == selected_hotel))
+      )
+      hotels_visible(FALSE)  # 设置为隐藏，因为我们仅显示了一个 hotel
+    }
+  })
+  
+  ### Bars ---------------------------------------------------------------
+  # 用于跟踪按钮状态
+  bars_visible <- reactiveVal(FALSE)
+  
+  observeEvent(input$show_bars, {
+    proxy <- leafletProxy("map")
+    
+    # 如果数据当前是可见的，则隐藏
+    if (bars_visible()) {
+      for (i in 1:nrow(first_50_bars)) {
+        proxy <- removeMarker(proxy, layerId = paste0("bar_", i))
+      }
+      bars_visible(FALSE)
+    } else {  # 如果数据当前是隐藏的，则显示
+      for (i in 1:nrow(first_50_bars)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_bars[i, "Longitude"],
+          lat = first_50_bars[i, "Latitude"],
+          icon = bar_icon,
+          popup = first_50_bars[i, "Business_address"],
+          layerId = paste0("bar_", i)
+        )
+      }
+      bars_visible(TRUE)
+    }
+  })
+  
+  observe({
+    selected_bar <- input$choose_bars
+    proxy <- leafletProxy("map")
+    
+    # 先移除所有标记
+    for (i in 1:nrow(first_50_bars)) {
+      proxy <- removeMarker(proxy, layerId = paste0("bar_", i))
+    }
+    
+    if (selected_bar == "All Bars") {
+      # 添加所有 bar 标记
+      for (i in 1:nrow(first_50_bars)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_bars[i, "Longitude"],
+          lat = first_50_bars[i, "Latitude"],
+          icon = bar_icon,
+          popup = first_50_bars[i, "Business_address"],
+          layerId = paste0("bar_", i)
+        )
+      }
+      bars_visible(TRUE)
+    } else {
+      # 添加特定的 bar 标记
+      selected_row <- first_50_bars[first_50_bars$Trading_name == selected_bar, ]
+      proxy <- addAwesomeMarkers(
+        proxy,
+        lng = selected_row$Longitude,
+        lat = selected_row$Latitude,
+        icon = bar_icon,
+        popup = selected_row$Business_address,
+        layerId = paste0("bar_", which(first_50_bars$Trading_name == selected_bar))
+      )
+      bars_visible(FALSE)  # 设置为隐藏，因为我们仅显示了一个 bar
+    }
+  })
+  
+  ### dwellings ---------------------------------------------------------------
+  # 用于跟踪按钮状态
+  dwellings_visible <- reactiveVal(FALSE)
+  
+  observeEvent(input$show_dwellings, {
+    proxy <- leafletProxy("map")
+    
+    # 如果数据当前是可见的，则隐藏
+    if (dwellings_visible()) {
+      for (i in 1:nrow(first_50_dwellings)) {
+        proxy <- removeMarker(proxy, layerId = paste0("dwelling_", i))
+      }
+      dwellings_visible(FALSE)
+    } else {  # 如果数据当前是隐藏的，则显示
+      for (i in 1:nrow(first_50_dwellings)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_dwellings[i, "Longitude"],
+          lat = first_50_dwellings[i, "Latitude"],
+          icon = dwelling_icon,
+          popup = first_50_dwellings[i, "Building.address"],
+          layerId = paste0("dwelling_", i)
+        )
+      }
+      dwellings_visible(TRUE)
+    }
+  })
+  
+  observe({
+    selected_dwelling <- input$choose_dwellings
+    proxy <- leafletProxy("map")
+    
+    # 先移除所有标记
+    for (i in 1:nrow(first_50_dwellings)) {
+      proxy <- removeMarker(proxy, layerId = paste0("dwelling_", i))
+    }
+    
+    if (selected_dwelling == "All Dwellings") {
+      # 添加所有 dwelling 标记
+      for (i in 1:nrow(first_50_dwellings)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_dwellings[i, "Longitude"],
+          lat = first_50_dwellings[i, "Latitude"],
+          icon = dwelling_icon,
+          popup = first_50_dwellings[i, "Building.address"],
+          layerId = paste0("dwelling_", i)
+        )
+      }
+      dwellings_visible(TRUE)
+    } else {
+      # 添加特定 Dwelling.type 的所有标记
+      selected_rows <- first_50_dwellings[first_50_dwellings$Dwelling.type == selected_dwelling, ]
+      for (i in 1:nrow(selected_rows)) {
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = selected_rows[i, "Longitude"],
+          lat = selected_rows[i, "Latitude"],
+          icon = dwelling_icon,
+          popup = selected_rows[i, "Building.address"],
+          layerId = paste0("dwelling_", which(first_50_dwellings$Dwelling.type == selected_dwelling)[i])
+        )
+      }
+      dwellings_visible(FALSE)  # 设置为隐藏，因为我们可能只显示了某一类型的部分 dwelling
+    }
+  })
+  
+  
+  
+  ### landmarks -----------------------------------------------------------
   # display landmarks
   landmarks_visible <- reactiveVal(FALSE)
   observeEvent(input$show_landmarks, {
@@ -337,97 +603,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # Display bars
-  bars_visible <- reactiveVal(FALSE)  # Assuming bars are visible by default
-  observeEvent(input$show_bars, {
-    bars_visible(!bars_visible())  # Toggle the value
-    proxy <- leafletProxy("map")
-    if (bars_visible()) {
-      for (i in 1:nrow(first_50_bars)) {
-        proxy <- addAwesomeMarkers(
-          proxy,
-          lng = first_50_bars[i, "Longitude"],
-          lat = first_50_bars[i, "Latitude"],
-          icon = bar_icon,
-          popup = first_50_bars[i, "Business_address"],
-          layerId = paste0("bar_", i)
-        )
-      }
-    } else {
-      for (i in 1:nrow(first_50_bars)) {
-        proxy <- removeMarker(proxy, layerId = paste0("bar_", i))
-      }
-    }
-  })
-  
-  # Display hotels
-  hotels_visible <- reactiveVal(FALSE)
-  observeEvent(input$show_hotels, {
-    hotels_visible(!hotels_visible())  # Toggle the value
-    proxy <- leafletProxy("map")
-    if (hotels_visible()) {
-      for (i in 1:nrow(first_500_hotels)) {
-        proxy <- addAwesomeMarkers(
-          proxy,
-          lng = first_500_hotels[i, "longitude"],
-          lat = first_500_hotels[i, "latitude"],
-          icon = hotel_icon,
-          popup = first_500_hotels[i, "Location"],
-          layerId = paste0("hotel_", i)
-        )
-      }
-    } else {
-      for (i in 1:nrow(first_500_hotels)) {
-        proxy <- removeMarker(proxy, layerId = paste0("hotel_", i))
-      }
-    }
-  })
-  
-  # Display dwellings
-  dwellings_visible <- reactiveVal(FALSE)
-  observeEvent(input$show_dwellings, {
-    dwellings_visible(!dwellings_visible())  # Toggle the value
-    proxy <- leafletProxy("map")
-    if (dwellings_visible()) {
-      for (i in 1:nrow(first_50_dwellings)) {
-        proxy <- addAwesomeMarkers(
-          proxy,
-          lng = first_50_dwellings[i, "Longitude"],
-          lat = first_50_dwellings[i, "Latitude"],
-          icon = dwelling_icon,
-          popup = first_50_dwellings[i, "Address"],
-          layerId = paste0("dwelling_", i)
-        )
-      }
-    } else {
-      for (i in 1:nrow(first_50_dwellings)) {
-        proxy <- removeMarker(proxy, layerId = paste0("dwelling_", i))
-      }
-    }
-  })
-  
-  # Display coworking spaces
-  coworking_visible <- reactiveVal(FALSE)
-  observeEvent(input$show_coworkings, {
-    coworking_visible(!coworking_visible())  # Toggle the value
-    proxy <- leafletProxy("map")
-    if (coworking_visible()) {
-      for (i in 1:nrow(first_50_coworkings)) {
-        proxy <- addAwesomeMarkers(
-          proxy,
-          lng = first_50_coworkings[i, "longitude"],
-          lat = first_50_coworkings[i, "latitude"],
-          icon = coworking_icon,
-          popup = first_50_coworkings[i, "Address"],
-          layerId = paste0("coworking_", i)
-        )
-      }
-    } else {
-      for (i in 1:nrow(first_50_coworkings)) {
-        proxy <- removeMarker(proxy, layerId = paste0("coworking_", i))
-      }
-    }
-  })
   
   ## Map
   output$map <- renderLeaflet({
