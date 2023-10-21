@@ -293,18 +293,28 @@ ui <- navbarPage(
       height: 80vh;
     }
   ")),
-  tabPanel("Plot2",
+  tabPanel("Hotzones",
            fluidRow(
-             column(width = 4, box(title = "Card 1", "Content for card 1"), class = "custom-box"),
-             column(width = 4, box(title = "Card 2", "Content for card 1"), class = "custom-box"),
-             column(width = 4, box(title = "Card 3", "Content for card 1"), class = "custom-box"),
+             column(width = 1), # 添加空列以居中内容
+             column(width = 4,
+                    box(title = "Traffic accident area", 
+                        "South-east Melbourne tend to occur most accidnet",
+                        class = "custom-box", width = "100%") # 设置框宽度为100%以撑满
+             ),
+             column(width = 2), # 添加空列以居中内容
+             column(width = 4,
+                    box(title = "Pedestrian density", 
+                        "People prefer to walk in Central and North Melbourne",
+                        class = "custom-box", width = "100%") # 设置框宽度为100%以撑满
+             ),
+             column(width = 1) # 添加空列以居中内容
            ),
+           fluidRow(column(width = 12, tags$div("", style = "height: 20px;"))), # 添加外部空行
            fluidRow(class = "tableau-plot",
                     column(width = 6, tableau1, class = "custom-plot"),
-                    column(width = 6, tableau2, class = "custom-plot"),
-           )
-  ),
-  tabPanel("User Guide", userGuide),
+                    column(width = 6, tableau2, class = "custom-plot")
+           ),
+  tabPanel("User Guide", userGuide),)
 )
 
 
