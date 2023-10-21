@@ -2,14 +2,14 @@
 # Group ID:
 # Group Member: (Name - Student ID - Email?)
 #   Student 1: Ruotong Zhao - 1076714
-#   Student 2:
+#   Student 2: YiFei ZHANG - 1174267
 #   Student 3:
 #   Student 4:
 # Subject: Information Visualisation (GEOM90007_2023_SM2)
 # Project introduction: Assignment3
 
 # ------------------------------ Import Library ------------------------------ #
-library("shiny")
+library(shiny)
 library(shinydashboard)
 library(bslib)
 library(leaflet) # Map
@@ -23,9 +23,9 @@ library(htmltools)
 source('tableau-in-shiny-v1.0.R')
 
 # ---------------------------- Variable Definition --------------------------- #
-# 读取CSV数据集
+# read csv file
 bar_data <- read.csv("new_data/bars-and-pubs-with-patron-capacity.csv")
-# 过滤数据集
+# filter csv
 bar_filtered_data <- bar_data %>%
   filter(!is.na(Business_address) &          # Business address 不为空
            !is.na(Longitude) &                   # Longitude 不为空
@@ -36,8 +36,7 @@ bar_filtered_data <- bar_data %>%
 
 # ---------------------------- restaurant_data --------------------------- #
 restaurant_data <- read.csv("new_data/cafes-and-restaurants-with-seating-capacity.csv")
-
-# 过滤数据集
+# filter csv
 restaurant_filtered_data <- restaurant_data %>%
   filter(!is.na(Trading_name) &          # Business address 不为空
            !is.na(Longitude) &                   # Longitude 不为空
@@ -103,7 +102,7 @@ userGuide <- tabPanel(
   # Accordion: https://rstudio.github.io/bslib/articles/sidebars/index.html#accordions
   accordion(
     accordion_panel("Introduction",
-                    "This project ..."),
+                    "Melbourne, the coastal capital of the southeastern Australian state of Victoria, is renowned for its rich cultural heritage, vibrant arts scene, and iconic landmarks. Recognizing the city's allure to global travelers, a dedicated team of data enthusiasts and developers from the the University of Melbourne embarked on a project to create a comprehensive digital guide for tourists. This Shiny application, developed with cutting-edge tools and libraries in R, offers an interactive map interface that showcases key attractions, accommodations, and leisure spots in Melbourne. Beyond just pinpointing locations, it integrates real-time weather data, ensuring visitors can plan their activities based on current conditions. Whether you're a leisure traveler keen to explore Melbourne's landmarks or a business visitor looking for coworking spaces, this app promises to be your indispensable companion. With its user-friendly design and wealth of information, tourists can now navigate the city with ease and make the most of their Melbourne experience."),
     accordion_panel("Data Source",
                     "Data Source Describe")
   )
@@ -283,11 +282,11 @@ ui <- navbarPage(
   header = setUpTableauInShiny(),
   tags$style(HTML("
     .custom-box {
-      border: 2px solid #000;  /* 黑色边框 */
-      background-color: #f9f9f9; /* 浅灰色背景 */
+      border: 2px solid #000;  /* black margin */
+      background-color: #f9f9f9; /* light gray background */
     }
     .custom-plot {
-      border: 2px solid black;  /* 橙色边框 */
+      border: 2px solid black;  /* orange margin */
     }
     .tableau-plot{
       height: 80vh;
@@ -295,26 +294,26 @@ ui <- navbarPage(
   ")),
   tabPanel("Hotzones",
            fluidRow(
-             column(width = 1), # 添加空列以居中内容
+             column(width = 1), 
              column(width = 4,
                     box(title = "Traffic accident area", 
                         "South-east Melbourne tend to occur most accidnet",
-                        class = "custom-box", width = "100%") # 设置框宽度为100%以撑满
+                        class = "custom-box", width = "100%") 
              ),
-             column(width = 2), # 添加空列以居中内容
+             column(width = 2),
              column(width = 4,
                     box(title = "Pedestrian density", 
                         "People prefer to walk in Central and North Melbourne",
-                        class = "custom-box", width = "100%") # 设置框宽度为100%以撑满
+                        class = "custom-box", width = "100%")
              ),
-             column(width = 1) # 添加空列以居中内容
+             column(width = 1)
            ),
-           fluidRow(column(width = 12, tags$div("", style = "height: 20px;"))), # 添加外部空行
+           fluidRow(column(width = 12, tags$div("", style = "height: 20px;"))),
            fluidRow(class = "tableau-plot",
                     column(width = 6, tableau1, class = "custom-plot"),
                     column(width = 6, tableau2, class = "custom-plot")
-           ),
-  tabPanel("User Guide", userGuide),)
+           )),
+  tabPanel("User Guide", userGuide),
 )
 
 
@@ -841,25 +840,24 @@ server <- function(input, output, session) {
       addMiniMap(
         tiles = providers$CartoDB.Positron,
         toggleDisplay = TRUE, position = "bottomleft") %>%
-      # 将地图聚焦在墨尔本区域
+      # zoom map to Melbourne
       setView(lng = 144.9631, lat = -37.8136, zoom = 14) %>%
       addControl(html = "<button id='jumpButton'>Jump to Melbourne</button>", position = "bottomleft")
     
     
-    # 创建用于显示 Business address 的响应性值
+    # react to click
     address_info <- reactiveVal("")
-    # 监听图标的点击事件
+    # listen to click
     observeEvent(input$map_marker_click, {
       event <- input$map_marker_click
       if (is.null(event)) {
-        return()  # 如果没有点击事件，不执行任何操作
+        return() 
       }
-      # 获取点击的图标的 ID
       marker_id <- event$id
       marker_type <- gsub("_[0-9]+$", "", marker_id)  # Extracting the marker type
       index <- as.numeric(gsub("^[a-z_]+_", "", marker_id))  # Extracting the index
       
-      # 根据图标类型获取对应的地址
+      # recognise click data type
       if (marker_type == "bar") {
         if (!is.na(index) && index >= 1 && index <= nrow(bar_filtered_data)) {
           address <- bar_filtered_data[index, "Business_address"]
@@ -901,10 +899,10 @@ server <- function(input, output, session) {
       } else {
         full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
       }
-      # 更新响应性值，以便在 UI 中显示地址
+      # update information on click
       address_info(full_info)
     })
-    # 在 "More Information" tabPanel 中显示地址
+    # display information
     output$more_information_content <- renderText({
       address_info()
     })
