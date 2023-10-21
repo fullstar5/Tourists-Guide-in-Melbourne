@@ -131,24 +131,24 @@ ui <- navbarPage(
     tags$link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"),  # 添加Font Awesome
     
     tags$style("#draggable {
-                  width: 50vh;
+                  width: 45vh;
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
                   top: 10vh;
-                  right: 3vh;
+                  right: 2vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
                   padding: 0.5vh;
                   }
                 
                 #draggable2 {
-                  width: 50vh;
+                  width: 40vh;
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 58vh;
-                  right: 3vh;
+                  top: 10vh;
+                  right: 47vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
                   padding: 0.5vh;
@@ -224,28 +224,31 @@ ui <- navbarPage(
                                         #actionButton("jump_to_melbourne", "Back to Melbourne Area",
                                         #             style = "margin-top: 1vh; background-color: #F9F200; color: black;"), br(),
                                         actionButton("show_coworkings", "Coworking",
-                                                     style = "margin-top: 1vh; background-color: purple; color: white; width: 16vh;"),
+                                                     style = "margin-top: 1vh; background-color: purple; color: white; width: 14vh;"),
                                         actionButton("show_hotels", "Hotel",
-                                                     style = "margin-top: 1vh; background-color: cadetblue; color: #333333; width: 16vh;"),
+                                                     style = "margin-top: 1vh; background-color: cadetblue; color: #333333; width: 14vh;"),
                                         actionButton("show_bars", "Bar",
-                                                     style = "margin-top: 1vh; background-color: red; color: white; width: 16vh;"), 
+                                                     style = "margin-top: 1vh; background-color: red; color: white; width: 14vh;"), 
                                         actionButton("show_landmarks", "Landmark",
-                                                     style = "margin-top: 1vh; background-color: #0163FA; color: white; width: 16vh;"), 
+                                                     style = "margin-top: 1vh; background-color: #0163FA; color: white; width: 14vh;"), 
                                         actionButton("show_dwellings", "Dwelling",
-                                                     style = "margin-top: 1vh;  background-color: #4CAF50; color: white; width: 16vh;"),
-                                        actionButton("toggle_tram_routes", "Tram",
-                                                     style = "margin-top: 1vh; background-color: green; color: white; width: 16vh;"),
+                                                     style = "margin-top: 1vh;  background-color: #4CAF50; color: white; width: 14vh;"),
                                         actionButton("show_restaurant", "Restaurant",
-                                                     style = "margin-top: 1vh; background-color: orange; color: white; width: 16vh;"), 
+                                                     style = "margin-top: 1vh; background-color: orange; color: white; width: 14vh;"), 
+                                        actionButton("toggle_tram_routes", "Tram",
+                                                     style = "margin-top: 1vh; background-color: green; color: white; width: 43vh;"),
                                         br(),
                                         fluidRow(
-                                          column(4, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworking", unique(first_50_coworkings$Organisation))), class = "select"),
-                                          column(4, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_500_hotels$Title))), class = "select"),
-                                          column(4, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),),
+                                          column(6, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworking", unique(first_50_coworkings$Organisation))), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_500_hotels$Title))), class = "select"),
+                                        ),
                                         fluidRow(
-                                          column(8, selectInput("choose_landmark", "Find Landmarks", choices = c("All Landmarks", unique(first_50_landmarks$Title))), class = "select"),
-                                          column(4, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type))), class = "select"),
-                                          column(4, selectInput("choose_restaurants", "Find Restaurants", choices = c("All Restaurants", unique(first_50_restaurants$Trading_name))), class = "select"),)
+                                          column(6, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),
+                                          column(6, selectInput("choose_landmark", "Find Landmarks", choices = c("All Landmarks", unique(first_50_landmarks$Title))), class = "select"),
+                                        ),
+                                        fluidRow(
+                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type))), class = "select"),
+                                          column(6, selectInput("choose_restaurants", "Find Restaurants", choices = c("All Restaurants", unique(first_50_restaurants$Trading_name))), class = "select"),)
                                ),
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
@@ -593,12 +596,19 @@ server <- function(input, output, session) {
       restaurants_visible(FALSE)
     } else {  
       for (i in 1:nrow(first_50_restaurants)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_restaurants[i, "Business_address"],
+          first_50_restaurants[i, "Latitude"],
+          first_50_restaurants[i, "Longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_restaurants[i, "Longitude"],
           lat = first_50_restaurants[i, "Latitude"],
           icon = restaurant_icon,
-          popup = first_50_restaurants[i, "Business_address"],
+          popup = popup_content,
           layerId = paste0("restaurant_", i)
         )
       }
@@ -614,12 +624,19 @@ server <- function(input, output, session) {
     }
     if (selected_restaurant == "All Restaurants") {
       for (i in 1:nrow(first_50_restaurants)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_restaurants[i, "Business_address"],
+          first_50_restaurants[i, "Latitude"],
+          first_50_restaurants[i, "Longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_restaurants[i, "Longitude"],
           lat = first_50_restaurants[i, "Latitude"],
           icon = restaurant_icon,
-          popup = first_50_restaurants[i, "Business_address"],
+          popup = popup_content,
           layerId = paste0("restaurant_", i)
         )
       }
