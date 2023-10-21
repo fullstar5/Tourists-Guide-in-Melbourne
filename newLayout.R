@@ -722,26 +722,26 @@ server <- function(input, output, session) {
     })
   })
   
-  #实现电车路线
+ #Tram Line
   data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
   
-  # 计算独特的线路数量
+  # Calculate unique tram line 
   num_unique_routes <- length(unique(data_sf$name))
   
-  # 生成颜色映射
+  # map color
   colors <- colorFactor(rainbow(num_unique_routes), data_sf$name)
   
   tram_routes_visible <- reactiveVal(FALSE)  # Assuming tram routes are hidden by default
   
-  # 为每条路线生成一个颜色
+  # Generate a color for each line
   colors <- colorFactor(rainbow(length(unique(data_sf$name))), data_sf$name)
   
   observeEvent(input$toggle_tram_routes, {
-    tram_routes_visible(!tram_routes_visible())  # 切换值
+    tram_routes_visible(!tram_routes_visible())  
     proxy <- leafletProxy("map")
     
     if (tram_routes_visible()) {
-      # 对每一条线路循环，添加到地图上
+      # Circulate each line
       for(route in unique(data_sf$name)) {
         route_data <- data_sf[data_sf$name == route, ]
         proxy %>% 
