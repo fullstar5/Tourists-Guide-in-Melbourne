@@ -211,7 +211,7 @@ ui <- navbarPage(
                                                      style = "margin-top: 1vh; background-color: green; color: white; width: 16vh;"),
                                         br(),
                                         fluidRow(
-                                          column(4, selectInput("choose_coworking", "Find Coworkings", choices = c("All Company", unique(first_50_coworkings$Organisation))), class = "select"),
+                                          column(4, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworking", unique(first_50_coworkings$Organisation))), class = "select"),
                                           column(4, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_500_hotels$Title))), class = "select"),
                                           column(4, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),),
                                         fluidRow(
@@ -357,7 +357,7 @@ server <- function(input, output, session) {
       proxy <- removeMarker(proxy, layerId = paste0("coworking_", i))
     }
     
-    if (selected_coworking == "All Company") {
+    if (selected_coworking == "All Coworking") {
       # Add all coworking marker
       for (i in 1:nrow(first_50_coworkings)) {
         proxy <- addAwesomeMarkers(
