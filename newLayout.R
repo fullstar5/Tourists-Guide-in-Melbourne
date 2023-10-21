@@ -19,6 +19,7 @@ library(httr)
 library(jsonlite)
 library(purrr)
 library(sf)
+library(htmltools)
 source('tableau-in-shiny-v1.0.R')
 
 # ---------------------------- Variable Definition --------------------------- #
@@ -185,6 +186,20 @@ ui <- navbarPage(
                       });")),
   ),
   
+  # Direction
+  tags$head(
+    tags$link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"),
+    tags$script(HTML("
+    $(document).on('click', '.navIcon', function(){
+      var coords = $(this).data('coords').split(',');
+      var lat = coords[0];
+      var lng = coords[1];
+      var url = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+      window.open(url, '_blank');
+    });
+  "))
+  ),
+  
   # Page 1
   tabPanel("Map",
            map,
@@ -285,6 +300,7 @@ server <- function(input, output, session) {
   coworking_icon <- makeAwesomeIcon(icon = 'briefcase', markerColor = "darkpurple", iconColor = 'white')
   landmark_icon <- makeAwesomeIcon(icon = 'map-marker', markerColor = 'blue', iconColor = 'white')
   hotel_icon <- makeAwesomeIcon(icon = 'bed', markerColor = 'orange', iconColor = 'white')
+  icon_html <- as.character(tags$a(id="navIcon", href="#", class="fas fa-map-signs"))
   
   # Melbourne coordinates
   lat <- -37.8136
@@ -324,7 +340,6 @@ server <- function(input, output, session) {
   ### coworking ---------------------------------------------------------------
   # Used to track button status
   coworking_visible <- reactiveVal(FALSE)
-  
   observeEvent(input$show_coworkings, {
     proxy <- leafletProxy("map")
     # Hide data if it is currently visible
@@ -335,12 +350,21 @@ server <- function(input, output, session) {
       coworking_visible(FALSE)
     } else {  # Displays if the data is currently hidden
       for (i in 1:nrow(first_50_coworkings)) {
+        # Create the popup HTML content
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_coworkings[i, "Address"],
+          first_50_coworkings[i, "latitude"],
+          first_50_coworkings[i, "longitude"]
+        )
+        
+        # Use this popup_content for your addAwesomeMarkers function
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_coworkings[i, "longitude"],
           lat = first_50_coworkings[i, "latitude"],
           icon = coworking_icon,
-          popup = first_50_coworkings[i, "Address"],
+          popup = popup_content,  # Use the created popup content
           layerId = paste0("coworking_", i)
         )
       }
@@ -349,6 +373,10 @@ server <- function(input, output, session) {
   })
   
   observe({
+    # if (!coworking_visible()) {
+    #  return()
+    #}
+    
     selected_coworking <- input$choose_coworking
     proxy <- leafletProxy("map")
     
@@ -360,12 +388,21 @@ server <- function(input, output, session) {
     if (selected_coworking == "All Coworking") {
       # Add all coworking marker
       for (i in 1:nrow(first_50_coworkings)) {
+        # Create the popup HTML content
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_coworkings[i, "Address"],
+          first_50_coworkings[i, "latitude"],
+          first_50_coworkings[i, "longitude"]
+        )
+        
+        # Use this popup_content for your addAwesomeMarkers function
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_coworkings[i, "longitude"],
           lat = first_50_coworkings[i, "latitude"],
           icon = coworking_icon,
-          popup = first_50_coworkings[i, "Address"],
+          popup = popup_content,  # Use the created popup content
           layerId = paste0("coworking_", i)
         )
       }
@@ -397,12 +434,19 @@ server <- function(input, output, session) {
       hotels_visible(FALSE)
     } else {  
       for (i in 1:nrow(first_500_hotels)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_500_hotels[i, "Location"],
+          first_500_hotels[i, "latitude"],
+          first_500_hotels[i, "longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_500_hotels[i, "longitude"],
           lat = first_500_hotels[i, "latitude"],
           icon = hotel_icon,
-          popup = first_500_hotels[i, "Location"],
+          popup = popup_content,
           layerId = paste0("hotel_", i)
         )
       }
@@ -419,12 +463,19 @@ server <- function(input, output, session) {
     
     if (selected_hotel == "All Hotels") {
       for (i in 1:nrow(first_500_hotels)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_500_hotels[i, "Location"],
+          first_500_hotels[i, "latitude"],
+          first_500_hotels[i, "longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_500_hotels[i, "longitude"],
           lat = first_500_hotels[i, "latitude"],
           icon = hotel_icon,
-          popup = first_500_hotels[i, "Location"],
+          popup = popup_content,
           layerId = paste0("hotel_", i)
         )
       }
@@ -455,12 +506,19 @@ server <- function(input, output, session) {
       bars_visible(FALSE)
     } else {  
       for (i in 1:nrow(first_50_bars)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_bars[i, "Business_address"],
+          first_50_bars[i, "Latitude"],
+          first_50_bars[i, "Longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_bars[i, "Longitude"],
           lat = first_50_bars[i, "Latitude"],
           icon = bar_icon,
-          popup = first_50_bars[i, "Business_address"],
+          popup = popup_content,
           layerId = paste0("bar_", i)
         )
       }
@@ -476,12 +534,19 @@ server <- function(input, output, session) {
     }
     if (selected_bar == "All Bars") {
       for (i in 1:nrow(first_50_bars)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_bars[i, "Business_address"],
+          first_50_bars[i, "Latitude"],
+          first_50_bars[i, "Longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_bars[i, "Longitude"],
           lat = first_50_bars[i, "Latitude"],
           icon = bar_icon,
-          popup = first_50_bars[i, "Business_address"],
+          popup = popup_content,
           layerId = paste0("bar_", i)
         )
       }
@@ -512,12 +577,19 @@ server <- function(input, output, session) {
       dwellings_visible(FALSE)
     } else {
       for (i in 1:nrow(first_50_dwellings)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_dwellings[i, "Address"],
+          first_50_dwellings[i, "Latitude"],
+          first_50_dwellings[i, "Longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_dwellings[i, "Longitude"],
           lat = first_50_dwellings[i, "Latitude"],
           icon = dwelling_icon,
-          popup = first_50_dwellings[i, "Address"],
+          popup = popup_content,
           layerId = paste0("dwelling_", i)
         )
       }
@@ -534,12 +606,19 @@ server <- function(input, output, session) {
     
     if (selected_dwelling == "All Dwellings") {
       for (i in 1:nrow(first_50_dwellings)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_dwellings[i, "Address"],
+          first_50_dwellings[i, "Latitude"],
+          first_50_dwellings[i, "Longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_dwellings[i, "Longitude"],
           lat = first_50_dwellings[i, "Latitude"],
           icon = dwelling_icon,
-          popup = first_50_dwellings[i, "Address"],
+          popup = popup_content,
           layerId = paste0("dwelling_", i)
         )
       }
@@ -547,13 +626,20 @@ server <- function(input, output, session) {
     } else {
       selected_rows <- first_50_dwellings[first_50_dwellings$Dwelling.type == selected_dwelling, ]
       for (i in 1:nrow(selected_rows)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_dwellings[i, "Address"],
+          first_50_dwellings[i, "Latitude"],
+          first_50_dwellings[i, "Longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
-          lng = selected_rows[i, "Longitude"],
-          lat = selected_rows[i, "Latitude"],
+          lng = first_50_dwellings[i, "Longitude"],
+          lat = first_50_dwellings[i, "Latitude"],
           icon = dwelling_icon,
-          popup = selected_rows[i, "Address"],
-          layerId = paste0("dwelling_", which(first_50_dwellings$Dwelling.type == selected_dwelling)[i])
+          popup = popup_content,
+          layerId = paste0("dwelling_", i)
         )
       }
       dwellings_visible(FALSE)
@@ -576,12 +662,19 @@ server <- function(input, output, session) {
     # If "All Landmarks" is selected, show all markers
     if (selected_landmark == "All Landmarks") {
       for (i in 1:nrow(first_50_landmarks)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_landmarks[i, "Title"],
+          first_50_landmarks[i, "latitude"],
+          first_50_landmarks[i, "longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_landmarks[i, "longitude"],
           lat = first_50_landmarks[i, "latitude"],
           icon = landmark_icon,
-          popup = first_50_landmarks[i, "Title"],
+          popup = popup_content,
           layerId = paste0("landmark_", i)
         )
       }
@@ -589,12 +682,19 @@ server <- function(input, output, session) {
       # Otherwise, only show markers for the selected landmark
       filtered_landmarks <- first_50_landmarks[first_50_landmarks$Title == selected_landmark, ]
       for (i in 1:nrow(filtered_landmarks)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_landmarks[i, "Title"],
+          first_50_landmarks[i, "latitude"],
+          first_50_landmarks[i, "longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
-          lng = filtered_landmarks[i, "longitude"],
-          lat = filtered_landmarks[i, "latitude"],
+          lng = first_50_landmarks[i, "longitude"],
+          lat = first_50_landmarks[i, "latitude"],
           icon = landmark_icon,
-          popup = filtered_landmarks[i, "Title"],
+          popup = popup_content,
           layerId = paste0("landmark_", i)
         )
       }
@@ -609,12 +709,19 @@ server <- function(input, output, session) {
     proxy <- leafletProxy("map")
     if (landmarks_visible()) {
       for (i in 1:nrow(first_50_landmarks)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_landmarks[i, "Title"],
+          first_50_landmarks[i, "latitude"],
+          first_50_landmarks[i, "longitude"]
+        )
+        
         proxy <- addAwesomeMarkers(
           proxy,
           lng = first_50_landmarks[i, "longitude"],
           lat = first_50_landmarks[i, "latitude"],
           icon = landmark_icon,
-          popup = first_50_landmarks[i, "Title"],
+          popup = popup_content,
           layerId = paste0("landmark_", i)
         )
       }
