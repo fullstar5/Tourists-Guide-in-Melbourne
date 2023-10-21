@@ -127,7 +127,7 @@ ui <- navbarPage(
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
-                  padding: 1vh;
+                  padding: 0.5vh;
                   }
                 
                 #draggable2 {
@@ -135,11 +135,11 @@ ui <- navbarPage(
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 60vh;
+                  top: 55vh;
                   right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
-                  padding: 1vh;
+                  padding: 0.5vh;
                 }
 
                 #draggable h4 {
@@ -165,6 +165,7 @@ ui <- navbarPage(
               .custom-slider-labels {
                   color: black;
                   margin: 0 10px;
+                  width: 70%;
                }"
     ),
     
@@ -203,22 +204,21 @@ ui <- navbarPage(
                                         actionButton("show_bars", "Bar",
                                                      style = "margin-top: 1vh; background-color: red; color: white; width: 14vh;"), 
                                         actionButton("show_landmarks", "Landmark",
-                                                     style = "margin-top: 1vh; margin-bottom: 1vh; background-color: #0163FA; color: white; width: 14vh;"), 
+                                                     style = "margin-top: 1vh; background-color: #0163FA; color: white; width: 14vh;"), 
                                         actionButton("show_dwellings", "Dwelling",
-                                                     style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: #4CAF50; color: white; width: 14vh;"),
+                                                     style = "margin-top: 1vh;  background-color: #4CAF50; color: white; width: 14vh;"),
                                         actionButton("toggle_tram_routes", "Tram",
-                                                     style = "margin-top: 1vh;  margin-bottom: 1vh; background-color: green; color: white; width: 14vh;"),
-                                        
+                                                     style = "margin-top: 1vh; background-color: green; color: white; width: 14vh;"),
+                                        br(),
                                         fluidRow(
                                           column(6, selectInput("choose_coworking", "Find Coworkings", choices = c("All Coworkings", unique(first_50_coworkings$Organisation))), class = "select"),
-                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_500_hotels$Title)))), class = "select"),
+                                          column(6, selectInput("choose_hotels", "Find Hotels", choices = c("All Hotels", unique(first_500_hotels$Title))), class = "select")),
                                         # column(4, selectInput("choose_bars", "Find Bars", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                         fluidRow(
                                           # column(6, selectInput("choose_landmarks", "Find Landmarks", choices = unique(bar_filtered_data$Trading_name)), class = "select"),
                                           column(6, selectInput("choose_bars", "Find Bars", choices = c("All Bars", unique(first_50_bars$Trading_name))), class = "select"),
-                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type)))), class = "select")
+                                          column(6, selectInput("choose_dwellings", "Dwelling type", choices = c("All Dwellings", unique(first_50_dwellings$Dwelling.type))), class = "select"))
                                ),
-                               
                                tabPanel("Page Setting", 
                                         div(class = "custom-slider-container",
                                             span("Light"),
@@ -227,10 +227,14 @@ ui <- navbarPage(
                                             ),
                                             span("Dark")
                                         ),
-                                        actionButton("light_mode", " Light Model", icon("sun"), 
-                                                     style = "margin-left: 20px; margin-top: 10px; margin-bottom: 10px; color: black; background-color: #E8E8E8; margin-top: 10px;"),
-                                        actionButton("dark_mode", " Dark Model", icon("moon"), 
-                                                     style = "margin-left: 100px; margin-top: 10px; margin-bottom: 10px; color: white; background-color: #212121; margin-top: 10px;"),),
+                                        fluidRow(
+                                          column(6, actionButton("light_mode", " Light Model", icon("sun"), 
+                                                       style = "color: black; background-color: #E8E8E8; margin-top: 10px;")),
+                                          column(6, actionButton("dark_mode", " Dark Model", icon("moon"), 
+                                                       style = "color: white; background-color: #212121; margin-top: 10px;")),
+                                        )
+                                        ,
+                               ),
                              ),
                     )
            ),
@@ -529,7 +533,7 @@ server <- function(input, output, session) {
           lng = first_50_dwellings[i, "Longitude"],
           lat = first_50_dwellings[i, "Latitude"],
           icon = dwelling_icon,
-          popup = first_50_dwellings[i, "Building.address"],
+          popup = first_50_dwellings[i, "Address"],
           layerId = paste0("dwelling_", i)
         )
       }
@@ -554,7 +558,7 @@ server <- function(input, output, session) {
           lng = first_50_dwellings[i, "Longitude"],
           lat = first_50_dwellings[i, "Latitude"],
           icon = dwelling_icon,
-          popup = first_50_dwellings[i, "Building.address"],
+          popup = first_50_dwellings[i, "Address"],
           layerId = paste0("dwelling_", i)
         )
       }
@@ -568,7 +572,7 @@ server <- function(input, output, session) {
           lng = selected_rows[i, "Longitude"],
           lat = selected_rows[i, "Latitude"],
           icon = dwelling_icon,
-          popup = selected_rows[i, "Building.address"],
+          popup = selected_rows[i, "Address"],
           layerId = paste0("dwelling_", which(first_50_dwellings$Dwelling.type == selected_dwelling)[i])
         )
       }
