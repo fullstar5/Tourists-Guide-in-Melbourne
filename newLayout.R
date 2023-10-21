@@ -104,7 +104,7 @@ tableau1 <- tableauPublicViz(
 )
 tableau2 <- tableauPublicViz(
   id = "tableau2",
-  url = "https://public.tableau.com/shared/DZP677NBS?:display_count=n&:origin=viz_share_link",
+  url = "https://public.tableau.com/views/1_16978614079580/1?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
   height = "500px"
 )
 # ----------------------------------- UI ------------------------------------- #
