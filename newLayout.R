@@ -933,28 +933,17 @@ server <- function(input, output, session) {
   #Tram Line
   data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
   
-  # Calculate unique tram line 
-  num_unique_routes <- length(unique(data_sf$name))
-  
-  # map color
-  colors <- colorFactor(rainbow(num_unique_routes), data_sf$name)
-  
+  # Tram routes visibility flag
   tram_routes_visible <- reactiveVal(FALSE)  # Assuming tram routes are hidden by default
-  
-  # Generate a color for each line
-  colors <- colorFactor(rainbow(length(unique(data_sf$name))), data_sf$name)
   
   observeEvent(input$toggle_tram_routes, {
     tram_routes_visible(!tram_routes_visible())  
     proxy <- leafletProxy("map")
     
     if (tram_routes_visible()) {
-      # Circulate each line
-      for(route in unique(data_sf$name)) {
-        route_data <- data_sf[data_sf$name == route, ]
-        proxy %>% 
-          addPolygons(data = route_data, color = colors(route), weight = 2, opacity = 1)
-      }
+      # Display each tram line in green color
+      proxy %>% 
+        addPolygons(data = data_sf, color = "green", weight = 2, opacity = 1)
     } else {
       proxy %>% clearShapes()
     }
