@@ -104,10 +104,11 @@ userGuide <- tabPanel(
     accordion_panel("Introduction",
                     "Melbourne, the coastal capital of the southeastern Australian state of Victoria, is renowned for its rich cultural heritage, vibrant arts scene, and iconic landmarks. Recognizing the city's allure to global travelers, a dedicated team of data enthusiasts and developers from the the University of Melbourne embarked on a project to create a comprehensive digital guide for tourists. This Shiny application, developed with cutting-edge tools and libraries in R, offers an interactive map interface that showcases key attractions, accommodations, and leisure spots in Melbourne. Beyond just pinpointing locations, it integrates real-time weather data, ensuring visitors can plan their activities based on current conditions. Whether you're a leisure traveler keen to explore Melbourne's landmarks or a business visitor looking for coworking spaces, this app promises to be your indispensable companion. With its user-friendly design and wealth of information, tourists can now navigate the city with ease and make the most of their Melbourne experience."),
     accordion_panel("Data Source",
-                    "melbourne_city_landmarks.csv ---- Melbourne landmarks coordinates, street and description（https://github.com/statelibraryvic/opendata/blob/master/melbourne_city_landmarks.csv",
+                    fluidRow(column(12, "melbourne_city_landmarks.csv ---- Melbourne landmarks coordinates, street and description（https://github.com/statelibraryvic/opendata/blob/master/melbourne_city_landmarks.csv")),
                     ),
     accordion_panel("Bug Report",
-                    "When click new marker after hiding information penal, the penal doesn't update anymore -- Fixing",
+                    fluidRow(column(12, "When click new marker after hiding information penal, the penal doesn't update anymore -- Fixing")),
+                    fluidRow(column(12, "Display all markers on map when app initiate, but it shouldn't -- Fixing")),
                     )
   )
 )
