@@ -170,12 +170,12 @@ ui <- navbarPage(
                }"
     ),
     
-    #tags$script('$(document).ready(function() {
-    #               $( "#draggable" ).draggable();
-    #             });'),
-    #tags$script('$(document).ready(function() {
-    #               $( "#draggable2" ).draggable();
-    #             });'),
+    tags$script('$(document).ready(function() {
+                   $( "#draggable" ).draggable();
+                 });'),
+    tags$script('$(document).ready(function() {
+                   $( "#draggable2" ).draggable();
+                 });'),
     tags$script(HTML("$(document).ready(function(){
                         $('#toggle-icon').click(function(){
                           $('#content-area').toggle();});
@@ -731,8 +731,6 @@ server <- function(input, output, session) {
       }
     }
   })
-  
-  
   
   ## Map
   output$map <- renderLeaflet({
