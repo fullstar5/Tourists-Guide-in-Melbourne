@@ -106,7 +106,7 @@ tableau1 <- tableauPublicViz(
 tableau2 <- tableauPublicViz(
   id = "tableau2",
   url = "https://public.tableau.com/views/1_16978614079580/1?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
-  height = "500px"
+  height = "79vh"
 )
 # ----------------------------------- UI ------------------------------------- #
 ## UI
@@ -160,12 +160,12 @@ ui <- navbarPage(
                .custom-slider-container {
                   color: black;
                   display: flex;
-                  margin-left: 15px;
+                  margin-left: 1.5vh;
                   align-items: center;
                 }
               .custom-slider-labels {
                   color: black;
-                  margin: 0 10px;
+                  margin: 0 1vh;
                   width: 70%;
                }"
     ),
@@ -243,9 +243,9 @@ ui <- navbarPage(
                                         ),
                                         fluidRow(
                                           column(6, actionButton("light_mode", " Light Model", icon("sun"), 
-                                                       style = "color: black; background-color: #E8E8E8; margin-top: 10px;")),
+                                                       style = "color: black; background-color: #E8E8E8; margin-top: 1vh;")),
                                           column(6, actionButton("dark_mode", " Dark Model", icon("moon"), 
-                                                       style = "color: white; background-color: #212121; margin-top: 10px;")),
+                                                       style = "color: white; background-color: #212121; margin-top: 1vh;")),
                                         )
                                         ,
                                ),
@@ -258,7 +258,7 @@ ui <- navbarPage(
                     ),
                     tags$div(id="content-area2",
                              tabPanel("More Information",  uiOutput("more_information_content"),
-                                      style = "margin-left: 10px; margin-top: 10px; margin-bottom: 10px;"),
+                                      style = "margin-left: 1vh; margin-top: 1vh; margin-bottom: 1vh;"),
                     )
            ),
   ),
