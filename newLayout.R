@@ -54,7 +54,7 @@ coworking_data <- read.csv("new_data/coworking-spaces.csv")
 
 first_50_landmarks <- head(landmarks_data, 50)
 first_50_bars <- head(bar_filtered_data, 50)
-first_50_restaurants <- head(restaurant_filtered_data, 500)
+first_50_restaurants <- head(restaurant_filtered_data, 75)
 first_500_hotels <- head(hotel_data, 100)
 first_50_dwellings <- head(dwelling_data, 50)
 first_50_coworkings <- head(coworking_data, 50)
