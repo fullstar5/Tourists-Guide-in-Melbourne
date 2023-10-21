@@ -99,13 +99,13 @@ userGuide <- tabPanel(
 
 tableau1 <- tableauPublicViz(
   id = "tableau1",
-  url = "https://public.tableau.com/views/accidents_analysis/pieChart?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
-  height = "500px"
+  url = "https://public.tableau.com/views/accidents_analysis/pie?:language=en-US&publish=yes&:display_count=n&:origin=viz_share_link",
+  height = "79vh"
 )
 tableau2 <- tableauPublicViz(
   id = "tableau2",
   url = "https://public.tableau.com/views/_16977972558290/sheet0?:language=zh-CN&publish=yes&:display_count=n&:origin=viz_share_link",
-  height = "500px"
+  height = "79vh"
 )
 # ----------------------------------- UI ------------------------------------- #
 ## UI
@@ -123,8 +123,8 @@ ui <- navbarPage(
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 8vh;
-                  right: 3vh;
+                  top: 10vh;
+                  right: 1vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
                   padding: 0.5vh;
@@ -136,7 +136,7 @@ ui <- navbarPage(
                   cursor: move;
                   position: absolute;
                   top: 55vh;
-                  right: 3vh;
+                  right: 1vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
                   padding: 0.5vh;
@@ -169,12 +169,12 @@ ui <- navbarPage(
                }"
     ),
     
-    tags$script('$(document).ready(function() {
-                   $( "#draggable" ).draggable();
-                 });'),
-    tags$script('$(document).ready(function() {
-                   $( "#draggable2" ).draggable();
-                 });'),
+    #tags$script('$(document).ready(function() {
+    #               $( "#draggable" ).draggable();
+    #             });'),
+    #tags$script('$(document).ready(function() {
+    #               $( "#draggable2" ).draggable();
+    #             });'),
     tags$script(HTML("$(document).ready(function(){
                         $('#toggle-icon').click(function(){
                           $('#content-area').toggle();});
@@ -258,6 +258,9 @@ ui <- navbarPage(
     .custom-plot {
       border: 2px solid black;  /* 橙色边框 */
     }
+    .tableau-plot{
+      height: 80vh;
+    }
   ")),
   tabPanel("Plot2",
            fluidRow(
@@ -265,7 +268,7 @@ ui <- navbarPage(
              column(width = 4, box(title = "Card 2", "Content for card 1"), class = "custom-box"),
              column(width = 4, box(title = "Card 3", "Content for card 1"), class = "custom-box"),
            ),
-           fluidRow(
+           fluidRow(class = "tableau-plot",
              column(width = 6, tableau1, class = "custom-plot"),
              column(width = 6, tableau2, class = "custom-plot"),
            )
