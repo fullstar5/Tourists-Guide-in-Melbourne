@@ -124,7 +124,7 @@ ui <- navbarPage(
                   cursor: move;
                   position: absolute;
                   top: 10vh;
-                  right: 1vh;
+                  right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
                   padding: 0.5vh;
@@ -135,8 +135,8 @@ ui <- navbarPage(
                   height: auto;  # 改为自动，以适应内容
                   cursor: move;
                   position: absolute;
-                  top: 55vh;
-                  right: 1vh;
+                  top: 58vh;
+                  right: 3vh;
                   background-color: rgba(255, 255, 255, 0.8);
                   color: black;
                   padding: 0.5vh;
@@ -198,17 +198,17 @@ ui <- navbarPage(
                                         #actionButton("jump_to_melbourne", "Back to Melbourne Area",
                                         #             style = "margin-top: 1vh; background-color: #F9F200; color: black;"), br(),
                                         actionButton("show_coworkings", "Coworking",
-                                                     style = "margin-top: 1vh; background-color: purple; color: white; width: 14vh;"),
+                                                     style = "margin-top: 1vh; background-color: purple; color: white; width: 16vh;"),
                                         actionButton("show_hotels", "Hotel",
-                                                     style = "margin-top: 1vh; background-color: #FFD740; color: #333333; width: 14vh;"),
+                                                     style = "margin-top: 1vh; background-color: #FFD740; color: #333333; width: 16vh;"),
                                         actionButton("show_bars", "Bar",
-                                                     style = "margin-top: 1vh; background-color: red; color: white; width: 14vh;"), 
+                                                     style = "margin-top: 1vh; background-color: red; color: white; width: 16vh;"), 
                                         actionButton("show_landmarks", "Landmark",
-                                                     style = "margin-top: 1vh; background-color: #0163FA; color: white; width: 14vh;"), 
+                                                     style = "margin-top: 1vh; background-color: #0163FA; color: white; width: 16vh;"), 
                                         actionButton("show_dwellings", "Dwelling",
-                                                     style = "margin-top: 1vh;  background-color: #4CAF50; color: white; width: 14vh;"),
+                                                     style = "margin-top: 1vh;  background-color: #4CAF50; color: white; width: 16vh;"),
                                         actionButton("toggle_tram_routes", "Tram",
-                                                     style = "margin-top: 1vh; background-color: green; color: white; width: 14vh;"),
+                                                     style = "margin-top: 1vh; background-color: green; color: white; width: 16vh;"),
                                         br(),
                                         fluidRow(
                                           column(4, selectInput("choose_coworking", "Find Coworkings", choices = c("All Company", unique(first_50_coworkings$Organisation))), class = "select"),
