@@ -105,6 +105,13 @@ userGuide <- tabPanel(
                     "Melbourne, the coastal capital of the southeastern Australian state of Victoria, is renowned for its rich cultural heritage, vibrant arts scene, and iconic landmarks. Recognizing the city's allure to global travelers, a dedicated team of data enthusiasts and developers from the the University of Melbourne embarked on a project to create a comprehensive digital guide for tourists. This Shiny application, developed with cutting-edge tools and libraries in R, offers an interactive map interface that showcases key attractions, accommodations, and leisure spots in Melbourne. Beyond just pinpointing locations, it integrates real-time weather data, ensuring visitors can plan their activities based on current conditions. Whether you're a leisure traveler keen to explore Melbourne's landmarks or a business visitor looking for coworking spaces, this app promises to be your indispensable companion. With its user-friendly design and wealth of information, tourists can now navigate the city with ease and make the most of their Melbourne experience."),
     accordion_panel("Data Source",
                     fluidRow(column(12, "melbourne_city_landmarks.csv ---- Melbourne landmarks coordinates, street and description（https://github.com/statelibraryvic/opendata/blob/master/melbourne_city_landmarks.csv")),
+                    fluidRow(column(12, "melbourne_and_metropolitan_hotels_pubs_and_publicans(new) - https://discover.data.vic.gov.au/dataset/melbourne-and-metropolitan-hotels-pubs-and-publicans")),
+                    fluidRow(column(12, "residential-dwellings.csv - https://data.melbourne.vic.gov.au/explore/dataset/residential-dwellings/export/")),
+                    fluidRow(column(12, "coworking-spaces.csv - https://data.melbourne.vic.gov.au/explore/dataset/coworking-spaces/export/")),
+                    fluidRow(column(12, "tram-tracks.geojson - https://data.melbourne.vic.gov.au/explore/dataset/tram-tracks/export/?location=12,-37.81397,144.95275&basemap=mbs-7a7333")),
+                    fluidRow(column(12, "pedestrian-network.json - https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-network/export/?location=16,-37.81111,144.95343&basemap=mbs-7a7333")),
+                    fluidRow(column(12, "bars-and-pubs-with-patron-capacity - https://discover.data.vic.gov.au/dataset/bar-tavern-pub-patron-capacity")),
+                    fluidRow(column(12, "cafes-and-restaurants-with-seating-capacity - https://discover.data.vic.gov.au/dataset/cafe-restaurant-bistro-seats")),
                     ),
     accordion_panel("Bug Report",
                     fluidRow(column(12, "When click new marker after hiding information penal, the penal doesn't update anymore -- Fixing")),
@@ -219,7 +226,7 @@ ui <- navbarPage(
   tabPanel("Map",
            map,
            tags$div(id = "draggable",
-                    tags$h4("Title", 
+                    tags$h4("Map/Page Setting", 
                             tags$i(id="toggle-icon", class="fas fa-chevron-down", style="float: right;")
                     ),
                     tags$div(id="content-area",
@@ -274,7 +281,7 @@ ui <- navbarPage(
                     )
            ),
            tags$div(id = "draggable2",
-                    tags$h4("Title", 
+                    tags$h4("Location Information", 
                             tags$i(id="toggle-icon2", class="fas fa-chevron-down", style="float: right;")
                     ),
                     tags$div(id="content-area2",
@@ -318,7 +325,7 @@ ui <- navbarPage(
                     column(width = 6, tableau1, class = "custom-plot"),
                     column(width = 6, tableau2, class = "custom-plot")
            )),
-  tabPanel("User Guide", userGuide),
+  tabPanel("About This Site", userGuide),
 )
 
 
@@ -889,6 +896,7 @@ server <- function(input, output, session) {
         if (!is.na(index) && index >= 1 && index <= nrow(restaurant_filtered_data)) {
           address <- restaurant_filtered_data[index, "Business_address"]
           trading_name <- restaurant_filtered_data[index, "Trading_name"]
+          seats <- restaurant_filtered_data[index, "seats"]
         }
       }
       # Construct business hours information
@@ -898,7 +906,7 @@ server <- function(input, output, session) {
       
       # Append business hours to the fetched address
       if (marker_type == "bar" || marker_type == "restaurant" || marker_type == "landmark") {
-        full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Location Name:</strong><br>", trading_name, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
+        full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Location Name:</strong><br>", trading_name, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Number of Seats:</strong><br>", seats, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
       }  else if(marker_type == "dwelling") {
         full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Address:</strong><br>", address)
       } else {
