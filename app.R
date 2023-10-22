@@ -27,20 +27,20 @@ source('tableau-in-shiny-v1.0.R')
 bar_data <- read.csv("new_data/bars-and-pubs-with-patron-capacity.csv")
 # filter csv
 bar_filtered_data <- bar_data %>%
-  filter(!is.na(Business_address) &          # Business address 不为空
-           !is.na(Longitude) &                   # Longitude 不为空
-           !is.na(Latitude) &                    # Latitude 不为空
-           Census_year > 2012 &               # Census year 大于 2022
-           Census_year < 2023 &               # Census year 小于 2023
-           grepl("bar", Trading_name, ignore.case = TRUE))  # Trading name 包含 "bar"（不区分大小写）
+  filter(!is.na(Business_address) &          # Business address
+           !is.na(Longitude) &                   # Longitude
+           !is.na(Latitude) &                    # Latitude
+           Census_year > 2012 &               # Census year
+           Census_year < 2023 &               # Census year
+           grepl("bar", Trading_name, ignore.case = TRUE))  # Trading name
 
 # ---------------------------- restaurant_data --------------------------- #
 restaurant_data <- read.csv("new_data/cafes-and-restaurants-with-seating-capacity.csv")
 # filter csv
 restaurant_filtered_data <- restaurant_data %>%
-  filter(!is.na(Trading_name) &          # Business address 不为空
-           !is.na(Longitude) &                   # Longitude 不为空
-           !is.na(Latitude)                     # Latitude 不为空
+  filter(!is.na(Trading_name) &          # Business address
+           !is.na(Longitude) &                   # Longitude 
+           !is.na(Latitude)                     # Latitude
   )
 
 ## Land Marks
@@ -190,7 +190,7 @@ ui <- navbarPage(
     
     tags$style("#draggable {
                   width: 45vh;
-                  height: auto;  # 改为自动，以适应内容
+                  height: auto;
                   cursor: move;
                   position: absolute;
                   top: 10vh;
@@ -202,7 +202,7 @@ ui <- navbarPage(
                 
                 #draggable2 {
                   width: 40vh;
-                  height: auto;  # 改为自动，以适应内容
+                  height: auto;
                   cursor: move;
                   position: absolute;
                   top: 10vh;
