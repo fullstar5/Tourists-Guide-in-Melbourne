@@ -277,7 +277,7 @@ ui <- navbarPage(
                             tags$i(id="toggle-icon", class="fas fa-chevron-down", style="float: right;")
                     ),
                     tags$div(id="content-area",
-                             tabsetPanel(
+                             tabsetPanel(id = "map",
                                tabPanel("Map Setting",
                                         #actionButton("jump_to_melbourne", "Back to Melbourne Area",
                                         #             style = "margin-top: 1vh; background-color: #F9F200; color: black;"), br(),
@@ -807,17 +807,43 @@ server <- function(input, output, session) {
   
   
   ### landmarks -----------------------------------------------------------
-  # display landmarks
+  landmarks_visible <- reactiveVal(FALSE)
+  
+  observeEvent(input$show_landmarks, {
+    proxy <- leafletProxy("map")
+    if (landmarks_visible()) {
+      for (i in 1:nrow(first_50_landmarks)) {
+        proxy <- removeMarker(proxy, layerId = paste0("landmark_", i))
+      }
+      landmarks_visible(FALSE)
+    } else {  
+      for (i in 1:nrow(first_50_landmarks)) {
+        popup_content <- sprintf(
+          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
+          first_50_landmarks[i, "Title"],
+          first_50_landmarks[i, "latitude"],
+          first_50_landmarks[i, "longitude"]
+        )
+        
+        proxy <- addAwesomeMarkers(
+          proxy,
+          lng = first_50_landmarks[i, "longitude"],
+          lat = first_50_landmarks[i, "latitude"],
+          icon = landmark_icon,
+          popup = popup_content,
+          layerId = paste0("landmark_", i)
+        )
+      }
+      landmarks_visible(TRUE)
+    }
+  })
+  
   observe({
     selected_landmark <- input$choose_landmark
     proxy <- leafletProxy("map")
-    
-    # Remove all existing landmark markers first
     for (i in 1:nrow(first_50_landmarks)) {
       proxy <- removeMarker(proxy, layerId = paste0("landmark_", i))
     }
-    
-    # If "All Landmarks" is selected, show all markers
     if (selected_landmark == "All Landmarks") {
       for (i in 1:nrow(first_50_landmarks)) {
         popup_content <- sprintf(
@@ -836,60 +862,22 @@ server <- function(input, output, session) {
           layerId = paste0("landmark_", i)
         )
       }
+      landmarks_visible(TRUE)
     } else {
-      # Otherwise, only show markers for the selected landmark
-      filtered_landmarks <- first_50_landmarks[first_50_landmarks$Title == selected_landmark, ]
-      for (i in 1:nrow(filtered_landmarks)) {
-        popup_content <- sprintf(
-          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
-          first_50_landmarks[i, "Title"],
-          first_50_landmarks[i, "latitude"],
-          first_50_landmarks[i, "longitude"]
-        )
-        
-        proxy <- addAwesomeMarkers(
-          proxy,
-          lng = first_50_landmarks[i, "longitude"],
-          lat = first_50_landmarks[i, "latitude"],
-          icon = landmark_icon,
-          popup = popup_content,
-          layerId = paste0("landmark_", i)
-        )
-      }
+      selected_row <- first_50_landmarks[first_50_landmarks$Title == selected_landmark, ]
+      proxy <- addAwesomeMarkers(
+        proxy,
+        lng = selected_row$longitude,
+        lat = selected_row$latitude,
+        icon = landmark_icon,
+        popup = selected_row$Title,
+        layerId = paste0("landmark_", which(first_50_landmarks$Title == selected_landmark))
+      )
+      landmarks_visible(FALSE) 
     }
   })
   
-  # Toggle visibility for all landmarks using the action button
-  landmarks_visible <- reactiveVal(FALSE)
-  observeEvent(input$show_landmarks, {
-    landmarks_visible(!landmarks_visible())
-    
-    proxy <- leafletProxy("map")
-    if (landmarks_visible()) {
-      for (i in 1:nrow(first_50_landmarks)) {
-        popup_content <- sprintf(
-          '<div>%s</div><a href="#" class="navIcon" data-coords="%s,%s"><i class="fas fa-map-signs"></i></a>',
-          first_50_landmarks[i, "Title"],
-          first_50_landmarks[i, "latitude"],
-          first_50_landmarks[i, "longitude"]
-        )
-        
-        proxy <- addAwesomeMarkers(
-          proxy,
-          lng = first_50_landmarks[i, "longitude"],
-          lat = first_50_landmarks[i, "latitude"],
-          icon = landmark_icon,
-          popup = popup_content,
-          layerId = paste0("landmark_", i)
-        )
-      }
-    } else {
-      for (i in 1:nrow(first_50_landmarks)) {
-        proxy <- removeMarker(proxy, layerId = paste0("landmark_", i))
-      }
-    }
-  })
-  
+ 
   ## Map
   output$map <- renderLeaflet({
     # Create Leaflet Map
