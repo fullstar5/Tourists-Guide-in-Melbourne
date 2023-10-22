@@ -53,7 +53,7 @@ coworking_data <- read.csv("new_data/coworking-spaces.csv")
 
 first_50_landmarks <- head(landmarks_data, 50)
 first_50_bars <- head(bar_filtered_data, 50)
-first_50_restaurants <- head(restaurant_filtered_data, 75)
+first_50_restaurants <- head(restaurant_filtered_data, 500)
 first_500_hotels <- head(hotel_data, 100)
 first_50_dwellings <- head(dwelling_data, 50)
 first_50_coworkings <- head(coworking_data, 50)
@@ -159,7 +159,7 @@ userGuide <- tabPanel(
                     fluidRow(column(12, "pedestrian-network.json - https://data.melbourne.vic.gov.au/explore/dataset/pedestrian-network/export/?location=16,-37.81111,144.95343&basemap=mbs-7a7333")),
                     fluidRow(column(12, "bars-and-pubs-with-patron-capacity - https://discover.data.vic.gov.au/dataset/bar-tavern-pub-patron-capacity")),
                     fluidRow(column(12, "cafes-and-restaurants-with-seating-capacity - https://discover.data.vic.gov.au/dataset/cafe-restaurant-bistro-seats")),
-                    ),
+    ),
     accordion_panel("Bug Report",
                     fluidRow(column(12, "When click new marker after hiding information penal, the penal doesn't update anymore -- Fixing")),br(),
                     fluidRow(column(12, "Display all markers on map when app initiate, but it shouldn't -- Fixing")),br(),
@@ -952,9 +952,11 @@ server <- function(input, output, session) {
       business_hours_info <- paste(days, hours, sep=": ", collapse="<br>")
       
       # Append business hours to the fetched address
-      if (marker_type == "bar" || marker_type == "restaurant" || marker_type == "landmark") {
+      if (marker_type == "bar" || marker_type == "landmark") {
+        full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Location Name:</strong><br>", trading_name, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
+      }  else if(marker_type == "restaurant") {
         full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Location Name:</strong><br>", trading_name, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Number of Seats:</strong><br>", seats, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
-      }  else if(marker_type == "dwelling") {
+      } else if(marker_type == "dwelling") {
         full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Address:</strong><br>", address)
       } else {
         full_info <- paste("<strong>Location Type:</strong><br>", marker_type, "<br><br><strong>Address:</strong><br>", address, "<br><br><strong>Business Hours:</strong><br>", business_hours_info, sep="")
