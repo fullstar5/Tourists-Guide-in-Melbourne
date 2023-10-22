@@ -4,7 +4,7 @@
 #   Student 1: Ruotong Zhao - 1076714
 #   Student 2: YiFei ZHANG - 1174267
 #   Student 3: Fan Pu - 1372387
-#   Student 4:
+#   Student 4: Hongyu Su - 1052322
 # Subject: Information Visualisation (GEOM90007_2023_SM2)
 # Project introduction: Assignment3
 
