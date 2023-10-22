@@ -32,7 +32,7 @@ If you encounter any issues or have queries, please refer to the code documentat
 
 ## Team Members' Contact:
 - Hongyu Su: suhongyu30@gmail.com
-- [Team Member 2's Name]: [Contact Information]
+- Ruotong Zhao: ruotzhao@student.unimelb.edu.au
 - [Team Member 3's Name]: [Contact Information]
 - [Team Member 4's Name]: [Contact Information]
 
