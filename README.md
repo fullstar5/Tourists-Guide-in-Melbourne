@@ -27,6 +27,9 @@ Run the main app.R file with the following command:
 ```R
 shiny::runApp('app.R')
 ```
+
+Alternatively, you can click the 'Run App' button located at the top right of the R Studio interface.
+
 ## Feedback
 If you encounter any issues or have queries, please refer to the code documentation/comments or contact our team members.
 
@@ -38,5 +41,8 @@ If you encounter any issues or have queries, please refer to the code documentat
 
 Thank you for your review!
 
-[Team or Project Name]
-[Date]
+---
+
+IV Assignment3 - Group 37
+
+10/22/2023
