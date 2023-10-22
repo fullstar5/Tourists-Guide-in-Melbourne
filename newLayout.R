@@ -163,7 +163,7 @@ userGuide <- tabPanel(
     accordion_panel("Bug Report",
                     fluidRow(column(12, "When click new marker after hiding information penal, the penal doesn't update anymore -- Fixing")),br(),
                     fluidRow(column(12, "Display all markers on map when app initiate, but it shouldn't -- Fixing")),br(),
-                    )
+    )
   )
 )
 
