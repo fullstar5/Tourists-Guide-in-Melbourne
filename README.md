@@ -31,7 +31,7 @@ shiny::runApp('app.R')
 If you encounter any issues or have queries, please refer to the code documentation/comments or contact our team members.
 
 ## Team Members' Contact:
-- [Team Member 1's Name]: [Contact Information]
+- Hongyu Su: suhongyu30@gmail.com
 - [Team Member 2's Name]: [Contact Information]
 - [Team Member 3's Name]: [Contact Information]
 - [Team Member 4's Name]: [Contact Information]
