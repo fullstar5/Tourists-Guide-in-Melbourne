@@ -1001,7 +1001,7 @@ server <- function(input, output, session) {
   })
   
   #Tram Line
-  data_sf <- st_read("tram-tracks.geojson", quiet = TRUE)
+  data_sf <- st_read("new_data/tram-tracks.geojson", quiet = TRUE)
   
   # Tram routes visibility flag
   tram_routes_visible <- reactiveVal(FALSE)  # Assuming tram routes are hidden by default
