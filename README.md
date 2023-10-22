@@ -37,7 +37,7 @@ If you encounter any issues or have queries, please refer to the code documentat
 - Hongyu Su: suhongyu30@gmail.com
 - Ruotong Zhao: ruotzhao@student.unimelb.edu.au
 - YiFei ZHANG: yifeizhang2@student.unimelb.edu.au
-- [Team Member 4's Name]: [Contact Information]
+- Fan Pu: fppu@student.unimelb.edu.au
 
 Thank you for your review!
 
