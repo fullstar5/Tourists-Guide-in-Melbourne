@@ -33,7 +33,7 @@ If you encounter any issues or have queries, please refer to the code documentat
 ## Team Members' Contact:
 - Hongyu Su: suhongyu30@gmail.com
 - Ruotong Zhao: ruotzhao@student.unimelb.edu.au
-- [Team Member 3's Name]: [Contact Information]
+- YiFei ZHANG: yifeizhang2@student.unimelb.edu.au
 - [Team Member 4's Name]: [Contact Information]
 
 Thank you for your review!
